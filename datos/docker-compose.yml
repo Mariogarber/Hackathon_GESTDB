@@ -10,8 +10,32 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../datos/script/bbdd_api_youtube.sql:/docker-entrypoint-initdb.d/02-datos.sql
+      - ./bbdd_postgresql/bbdd_api_youtube.sql:/docker-entrypoint-initdb.d/02-datos.sql
     restart: unless-stopped
+
+  data-importer:
+    image: python:3.9-slim
+    container_name: data_importer
+    depends_on:
+      - postgres
+    volumes:
+      - ./scripts:/app/scripts
+      - ./datos_raw_jsons:/app/data
+    working_dir: /app
+    command: >
+      sh -c "
+      echo '📦 Instalando dependencias...' &&
+      pip install --no-cache-dir psycopg2-binary &&
+      echo '🔄 Esperando a que PostgreSQL esté listo...' &&
+      sleep 10 &&
+      echo '🚀 Importando canales...' &&
+      python scripts/insert_channels.py data/canales_youtube_info.json &&
+      echo '🎬 Importando videos (con topics)...' &&
+      python scripts/insert_videos.py &&
+      echo '✅ Todos los datos importados exitosamente!' &&
+      tail -f /dev/null
+      "
+    restart: on-failure
 
 volumes:
   postgres_data:
