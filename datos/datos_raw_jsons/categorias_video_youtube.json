@@ -1,0 +1,188 @@
+[
+    {
+        "id": "1",
+        "title": "Film & Animation",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "2",
+        "title": "Autos & Vehicles",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "10",
+        "title": "Music",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "15",
+        "title": "Pets & Animals",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "17",
+        "title": "Sports",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "18",
+        "title": "Short Movies",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "19",
+        "title": "Travel & Events",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "20",
+        "title": "Gaming",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "21",
+        "title": "Videoblogging",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "22",
+        "title": "People & Blogs",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "23",
+        "title": "Comedy",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "24",
+        "title": "Entertainment",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "25",
+        "title": "News & Politics",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "26",
+        "title": "Howto & Style",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "27",
+        "title": "Education",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "28",
+        "title": "Science & Technology",
+        "assignable": true,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "30",
+        "title": "Movies",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "31",
+        "title": "Anime/Animation",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "32",
+        "title": "Action/Adventure",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "33",
+        "title": "Classics",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "34",
+        "title": "Comedy",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "35",
+        "title": "Documentary",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "36",
+        "title": "Drama",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "37",
+        "title": "Family",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "38",
+        "title": "Foreign",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "39",
+        "title": "Horror",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "40",
+        "title": "Sci-Fi/Fantasy",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "41",
+        "title": "Thriller",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "42",
+        "title": "Shorts",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "43",
+        "title": "Shows",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    },
+    {
+        "id": "44",
+        "title": "Trailers",
+        "assignable": false,
+        "channelId": "UCBR8-60-B28hp2BmDPdntcQ"
+    }
+]
