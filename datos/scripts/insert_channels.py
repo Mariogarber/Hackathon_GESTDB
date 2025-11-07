@@ -85,14 +85,14 @@ def insert_channels_from_json(file_path):
                 # Preparar datos según la estructura EXACTA de tu tabla
                 channel_id = channel_info['id']
                 name = channel_info['name']
-                language = channel_info['language'] if channel_info['language'] else 'es'
-                description = channel_info['description']
+                language = channel_info.get('language', '') or ''  # Default a 'es' si está vacío
+                description = channel_info.get('description', '')
                 suscriber_count = channel_info['subscriber_count']
                 banner = channel_info['banner']
                 category_link = channel_info.get('custom_url', '') or channel_info.get('handle', '')
                 
                 # Validar campos NOT NULL
-                if not channel_id or not name or not language or suscriber_count is None or not banner:
+                if not channel_id or not name or suscriber_count is None or not banner:
                     print(f"⚠️  Campos requeridos faltantes en {name}, saltando...")
                     errors += 1
                     continue
@@ -174,9 +174,9 @@ if __name__ == "__main__":
     # Verificar archivo
     if not os.path.exists(json_file):
         print(f"❌ Archivo no encontrado: {json_file}")
-        print("📁 Contenido del directorio /app:")
+        print("📁 Contenido del directorio /app/data:")
         try:
-            print(os.listdir('/app'))
+            print(os.listdir('/app/data'))
         except:
             print("No se pudo listar el directorio")
         sys.exit(1)

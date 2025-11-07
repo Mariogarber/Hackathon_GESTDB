@@ -27,8 +27,8 @@ CREATE TABLE public.video (
 	like_count integer NOT NULL,
 	thumbnails text NOT NULL,
 	comment_count integer NOT NULL,
+	topic text NOT NULL,
 	id_channel varchar NOT NULL,
-	topic varchar,
 	CONSTRAINT video_pk PRIMARY KEY (id)
 
 );
@@ -73,18 +73,6 @@ REFERENCES public.category (id) MATCH FULL
 ON DELETE RESTRICT ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: public.comment_thread | type: TABLE --
--- DROP TABLE IF EXISTS public.comment_thread CASCADE;
-CREATE TABLE public.comment_thread (
-	id varchar NOT NULL,
-	id_video varchar NOT NULL,
-	CONSTRAINT comment_thread_pk PRIMARY KEY (id)
-
-);
--- ddl-end --
-ALTER TABLE public.comment_thread OWNER TO postgres;
--- ddl-end --
-
 -- object: public.comment | type: TABLE --
 -- DROP TABLE IF EXISTS public.comment CASCADE;
 CREATE TABLE public.comment (
@@ -93,22 +81,15 @@ CREATE TABLE public.comment (
 	published_at date NOT NULL,
 	is_response bool NOT NULL,
 	like_count integer NOT NULL,
-	is_possitive bool NOT NULL,
-	is_formal bool NOT NULL,
-	id_comment_thread varchar NOT NULL,
+	is_possitive bool,
+	is_formal bool,
 	id_channel varchar NOT NULL,
+	id_video varchar NOT NULL,
 	CONSTRAINT comment_pk PRIMARY KEY (id)
 
 );
 -- ddl-end --
 ALTER TABLE public.comment OWNER TO postgres;
--- ddl-end --
-
--- object: comment_thread_fk | type: CONSTRAINT --
--- ALTER TABLE public.comment DROP CONSTRAINT IF EXISTS comment_thread_fk CASCADE;
-ALTER TABLE public.comment ADD CONSTRAINT comment_thread_fk FOREIGN KEY (id_comment_thread)
-REFERENCES public.comment_thread (id) MATCH FULL
-ON DELETE RESTRICT ON UPDATE CASCADE;
 -- ddl-end --
 
 -- object: public.rating | type: TABLE --
@@ -172,20 +153,6 @@ REFERENCES public.channel (id) MATCH FULL
 ON DELETE RESTRICT ON UPDATE CASCADE;
 -- ddl-end --
 
--- object: video_fk | type: CONSTRAINT --
--- ALTER TABLE public.comment_thread DROP CONSTRAINT IF EXISTS video_fk CASCADE;
-ALTER TABLE public.comment_thread ADD CONSTRAINT video_fk FOREIGN KEY (id_video)
-REFERENCES public.video (id) MATCH FULL
-ON DELETE RESTRICT ON UPDATE CASCADE;
--- ddl-end --
-
--- object: channel_fk | type: CONSTRAINT --
--- ALTER TABLE public.comment DROP CONSTRAINT IF EXISTS channel_fk CASCADE;
-ALTER TABLE public.comment ADD CONSTRAINT channel_fk FOREIGN KEY (id_channel)
-REFERENCES public.channel (id) MATCH FULL
-ON DELETE RESTRICT ON UPDATE CASCADE;
--- ddl-end --
-
 -- object: video_published_at_index | type: INDEX --
 -- DROP INDEX IF EXISTS public.video_published_at_index CASCADE;
 CREATE INDEX video_published_at_index ON public.video
@@ -220,6 +187,13 @@ CREATE INDEX comment_published_at_index ON public.comment
 	(
 	  published_at
 	);
+-- ddl-end --
+
+-- object: video_fk | type: CONSTRAINT --
+-- ALTER TABLE public.comment DROP CONSTRAINT IF EXISTS video_fk CASCADE;
+ALTER TABLE public.comment ADD CONSTRAINT video_fk FOREIGN KEY (id_video)
+REFERENCES public.video (id) MATCH FULL
+ON DELETE RESTRICT ON UPDATE CASCADE;
 -- ddl-end --
 
 

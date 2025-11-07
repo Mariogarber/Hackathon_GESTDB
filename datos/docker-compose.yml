@@ -10,7 +10,19 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./bbdd_postgresql/bbdd_api_youtube.sql:/docker-entrypoint-initdb.d/02-datos.sql
+      - ./bbdd_postgresql/bbdd_api_youtube.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
     restart: unless-stopped
 
   data-importer:
@@ -25,13 +37,17 @@ services:
     command: >
       sh -c "
       echo '📦 Instalando dependencias...' &&
-      pip install --no-cache-dir psycopg2-binary &&
+      pip install --no-cache-dir psycopg2-binary pandas &&
       echo '🔄 Esperando a que PostgreSQL esté listo...' &&
-      sleep 10 &&
+      sleep 15 &&
+      echo '📊 Importando categorías...' &&
+      python scripts/insert_categories.py &&
       echo '🚀 Importando canales...' &&
-      python scripts/insert_channels.py data/canales_youtube_info.json &&
+      python scripts/insert_channels.py &&
       echo '🎬 Importando videos (con topics)...' &&
       python scripts/insert_videos.py &&
+      echo '🎬 Importando comentarios (con topics)...' &&
+      python scripts/insert_comments.py &&
       echo '✅ Todos los datos importados exitosamente!' &&
       tail -f /dev/null
       "
