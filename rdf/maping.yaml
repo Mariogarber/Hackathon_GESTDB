@@ -9,7 +9,20 @@ mappings:
 
   ChannelMapping:
     sources:
-      - [data/channels.csv~csv]
+      - access: jdbc:postgresql://localhost:5432/youtube_db
+        query: >
+          SELECT video_id AS VideoID,
+                 title AS Title,
+                 description AS Description,
+                 publication_date AS PublicationDate,
+                 likes AS Likes,
+                 comments AS Comments,
+                 views AS Views,
+                 channel_id AS ChannelID
+          FROM videos;
+        username: postgres
+        password: mysecretpassword
+
     s: ex:channel_$(ChannelID)
     po:
       - [a, wd:Q17558136]                   # YouTube channel
