@@ -1,0 +1,53 @@
+prefixes:
+  ex: "http://example.org/"
+  wd: "http://www.wikidata.org/entity/"
+  wdt: "http://www.wikidata.org/prop/direct/"
+  xsd: "http://www.w3.org/2001/XMLSchema#"
+  schema: "http://schema.org/"
+
+mappings:
+
+  ChannelMapping:
+    sources:
+      - [data/channels.csv~csv]
+    s: ex:channel_$(ChannelID)
+    po:
+      - [a, wd:Q17558136]                   # YouTube channel
+      - [schema:name, $(ChannelName)]
+      - [wdt:P2397, $(ChannelID)]           # YouTube channel ID
+      - [wdt:P407, $(Language)]             # language of the channel
+      - [wdt:P3744, $(Subscribers), xsd:integer] # number of subscribers
+      - [wdt:P910, ex:category_$(CategoryID)] # main category relation
+
+  VideoMapping:
+    sources:
+      - [data/videos.csv~csv]
+    s: ex:video_$(VideoID)
+    po:
+      - [a, wd:Q63412991]                   # YouTube video
+      - [wdt:P1476, $(Title)]
+      - [wdt:P577, $(PublicationDate)]    # publication date entity
+      - [wdt:P2047, $(Duration), xsd:integer]   # duration in seconds
+      - [wdt:P10649, $(Likes), xsd:integer]    # number of likes
+      - [wdt:P10651, $(Comments), xsd:integer]  # number of comments
+      - [wdt:P5436, $(Views), xsd:integer]  # number of views
+      - [schema:description, $(Description)]        # video description
+      - [wdt:P123, ex:channel_$(ChannelID)]  # publicado por canal
+
+  CommentMapping:
+    sources:
+      - [data/comments.csv~csv]
+    s: ex:comment_$(CommentID)
+    po:
+      - [a, wd:Q25345994]                   # Comment
+      - [wdt:P577, $(PublicationDate), xsd:date]
+      - [wdt:P10649, $(Likes), xsd:integer]
+      - [wdt:P1433, ex:video_$(VideoID)]     # pertenece a vídeo
+
+  CategoryMapping:
+    sources:
+      - [data/categories.csv~csv]
+    s: ex:category_$(CategoryID)
+    po:
+      - [a, wd:Q6421128]
+      - [rdfs:label, $(CategoryName)]
