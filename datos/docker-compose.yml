@@ -12,6 +12,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./bbdd_postgresql/bbdd_api_youtube.sql:/docker-entrypoint-initdb.d/01-schema.sql
     restart: unless-stopped
+    networks:
+      - network_gestbd
 
   pgadmin:
     image: dpage/pgadmin4
@@ -24,6 +26,21 @@ services:
     depends_on:
       - postgres
     restart: unless-stopped
+    networks:
+      - network_gestbd
+
+  elasticsearch:
+    image: elasticsearch:8.7.0
+    ports:
+      - 9200:9200      
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    volumes:
+      - ./es-data:/usr/share/elasticsearch/data
+    networks:
+      - network_gestbd
 
   data-importer:
     image: python:3.9-slim
@@ -48,10 +65,52 @@ services:
       python scripts/insert_videos.py &&
       echo '🎬 Importando comentarios (con topics)...' &&
       python scripts/insert_comments.py &&
+      echo '🔄 Sincronizando con Elasticsearch...' &&
+      python scripts/insert_into_elasticserch.py &&
       echo '✅ Todos los datos importados exitosamente!' &&
       tail -f /dev/null
       "
     restart: on-failure
+    networks:
+      - network_gestbd
+
+  elasticsearch-sync:
+    image: python:3.9-slim
+    container_name: elasticsearch_sync
+    depends_on:
+      - postgres
+      - elasticsearch
+    volumes:
+      - ./scripts:/app/scripts
+    working_dir: /app
+    command: >
+      sh -c "
+      echo '📦 Instalando dependencias para Elasticsearch...' &&
+      pip install --no-cache-dir psycopg2-binary elasticsearch &&
+      echo '🔄 Esperando a que los servicios estén listos...' &&
+      sleep 30 &&
+      echo '🔄 Sincronizando datos de PostgreSQL a Elasticsearch...' &&
+      python scripts/insert_into_elasticserch.py &&
+      echo '✅ Sincronización completada!' &&
+      tail -f /dev/null
+      "
+    restart: on-failure
+    networks:
+      - network_gestbd
+
+  jupyter:
+    image: jupyter/scipy-notebook:python-3.8
+    ports:
+      - 8888:8888
+    volumes:
+      - "./notebooks:/home/jovyan/work/notebooks"        
+    command: ["start-notebook.sh","--NotebookApp.token=''","--NotebookApp.password=''"]          
+    networks:
+      - network_gestbd
 
 volumes:
   postgres_data:
+
+networks:
+  network_gestbd:
+    external: true
