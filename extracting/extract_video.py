@@ -15,6 +15,7 @@ CHANNEL_KEYS = {
 }
 
 import json
+import pandas as pd
 import googleapiclient.discovery
 from transformers import pipeline
 
@@ -141,3 +142,25 @@ class VideoSummarizer:
                 "summary": summary
             })
         return video_summaries
+
+
+if __name__ == "__main__":
+    channel_name = "Veritasium"  # Canal a procesar
+    summarizer = VideoSummarizer(api_key=API_KEY)
+    summaries = summarizer.process(channel_name)
+
+    df = pd.DataFrame(summaries)
+    df['video_id'] = df['video_id'].astype(str)
+
+    df_all = pd.read_json("videos_filtrados_por_categoria.json")
+    df_all['video_id'] = df_all['video_id'].astype(str)
+
+    df_merge = df_all.join(df.set_index('video_id'), on="video_id", how="left", rsuffix="llm_")
+    df_merge = df_merge.drop(columns=['titlellm_', 'descriptionllm_'])
+
+    df_merge["summary"] = df_merge["summary"].fillna("No summary avaliable")
+    cols_to_fill = df_merge.columns.difference(["summary"])
+    df_merge[cols_to_fill] = df_merge[cols_to_fill].fillna(0)
+
+    df_merge.to_json("videos_filtrados_por_categoria_con_resumen.json", orient="records")
+    print("Archivo generado: videos_filtrados_por_categoria_con_resumen.json")
