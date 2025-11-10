@@ -14,7 +14,7 @@ DB_CONFIG = {
 
 def procesar_csv_y_insertar():
     # Leer el CSV
-    df = pd.read_csv('/app/data/comments_data_final.csv', encoding='utf-8')
+    df = pd.read_csv('/app/data/comments_data_sentiment.csv', encoding='utf-8')
     
     # Conectar a la base de datos
     conn = None
