@@ -49,8 +49,9 @@ def procesar_csv_y_insertar():
                 
                 # is_possitive - análisis básico de sentimiento
                 text_lower = str(text).lower() if pd.notna(text) else ""
-                positive_words = ['gracias', 'buen', 'bueno', 'excelente', 'interesante', 'genial', 'perfecto', 'awesome', 'great', 'good']
-                is_possitive = any(word in text_lower for word in positive_words)
+                #positive_words = ['gracias', 'buen', 'bueno', 'excelente', 'interesante', 'genial', 'perfecto', 'awesome', 'great', 'good']
+                #is_possitive = any(word in text_lower for word in positive_words)
+                is_possitive = row['is_positive']
                 
                 # is_formal - análisis básico de formalidad
                 formal_indicators = ['saludos', 'estimado', 'cordiales', 'agradecido', 'respecto a', 'dear', 'regards']

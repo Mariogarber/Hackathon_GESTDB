@@ -59,6 +59,13 @@ def _safe_iso_date(value):
         return str(value)
     except Exception:
         return None
+    
+def _safe_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    else:
+        return default
+
 
 def convert_time_to_seconds(value):
     """Convierte timedelta/time/string/num a segundos."""
@@ -108,7 +115,8 @@ MAPPING_COMMENTS = {
             "id_video": {"type": "keyword"},
             "text": {"type": "text", "analyzer": "standard"},
             "published_at": {"type": "date", "format": "strict_date_optional_time||epoch_millis"},
-            "like_count": {"type": "integer"}
+            "like_count": {"type": "integer"},
+            "is_positive": {"type": "boolean"}
         }
     },
     "settings": {"number_of_shards": 1, "number_of_replicas": 0}
@@ -211,7 +219,8 @@ def fetch_comments_from_postgres():
             id_video,
             published_at,
             text,
-            like_count
+            like_count,
+            is_positive
         FROM public.comment
         """
         cur.execute(query)
@@ -312,6 +321,7 @@ def index_comments_bulk(es_client, comments, batch_size=500):
                 'text': _safe_str(c.get('text')),
                 'published_at': _safe_iso_date(c.get('published_at')),
                 'like_count': _safe_int(c.get('like_count')),
+                'is_positive': _safe_bool(c.get('is_positive'))
             }
             actions.append({"_index": ES_INDEX_COMMENTS, "_id": doc_id, "_source": doc})
 
