@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgresql
+    environment:
+      POSTGRES_DB: bbdd_api_youtube
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./bbdd_postgresql/bbdd_api_youtube.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    restart: unless-stopped
+    networks:
+      - network_gestbd
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - network_gestbd
+
+  # elasticsearch:
+  #   image: elasticsearch:8.7.0
+  #   ports:
+  #     - 9200:9200      
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ES_JAVA_OPTS=-Xms512m -Xmx512m
+  #     - xpack.security.enabled=false
+  #   volumes:
+  #     - ./es-data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - network_gestbd
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./es-data:/usr/share/elasticsearch/data
+    networks:
+      - network_gestbd
+
+
+  data-importer:
+    image: python:3.9-slim
+    container_name: data_importer
+    depends_on:
+      - postgres
+      - elasticsearch
+    volumes:
+      - ./scripts:/app/scripts
+      - ./datos_raw_jsons:/app/data
+    working_dir: /app
+    command: >
+      sh -c "
+      echo '📦 Instalando dependencias...' &&
+      pip install --no-cache-dir psycopg2-binary pandas elasticsearch==8.7.0 jupyterlab &&
+      echo '🔄 Esperando a que PostgreSQL esté listo...' &&
+      sleep 15 &&
+      echo '📊 Importando categorías...' &&
+      python scripts/insert_categories.py &&
+      echo '🚀 Importando canales...' &&
+      python scripts/insert_channels.py &&
+      echo '🎬 Importando videos (con topics)...' &&
+      python scripts/insert_videos.py &&
+      echo '🎬 Importando comentarios (con topics)...' &&
+      python scripts/insert_comments.py &&
+      echo '🔄 Sincronizando con Elasticsearch...' &&
+      python scripts/insert_into_elasticsearch.py &&
+      echo '✅ Todos los datos importados exitosamente!' &&
+      tail -f /dev/null
+      "
+    networks:
+      - network_gestbd
+
+  jupyter:
+    image: jupyter/scipy-notebook:python-3.8
+    ports:
+      - 8888:8888
+    volumes:
+      - "./notebooks:/home/jovyan/work/notebooks"        
+    command: ["start-notebook.sh","--NotebookApp.token=''","--NotebookApp.password=''"]          
+    networks:
+      - network_gestbd
+
+volumes:
+  postgres_data:
+
+networks:
+  network_gestbd:
+    external: true
