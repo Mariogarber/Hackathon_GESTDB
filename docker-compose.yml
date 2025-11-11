@@ -1,0 +1,107 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgresql
+    environment:
+      POSTGRES_DB: bbdd_api_youtube
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/database_youtube.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    restart: unless-stopped
+    networks:
+      - network_gestbd
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - network_gestbd
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - network_gestbd
+
+  data-importer:
+    image: python:3.9-slim
+    container_name: data_importer
+    depends_on:
+      - postgres
+      - elasticsearch
+    volumes:
+      - ./scripts:/app/scripts
+      - ./data/api_data:/app/data
+      - ./requirements.txt:/app/requirements.txt 
+      - ./config/.env:/app/.env 
+    working_dir: /app
+    command: >
+      sh -c "
+      echo 'Instalando dependencias...' &&
+      pip install --no-cache-dir -r requirements.txt &&
+      echo 'Waiting for PostgreSQL to be ready...' &&
+      sleep 15 &&
+      echo 'Importing categories...' &&
+      python scripts/insert_categories.py &&
+      echo 'Importing channels...' &&
+      python scripts/insert_channels.py &&
+      echo 'Importing videos' &&
+      python scripts/insert_videos.py &&
+      echo 'Importing comments' &&
+      python scripts/insert_comments.py &&
+      echo 'Synchronizing with Elasticsearch...' &&
+      python scripts/insert_into_elasticsearch.py &&
+      echo 'All data successfully imported!' &&
+      tail -f /dev/null
+      "
+    networks:
+      - network_gestbd
+
+
+  graphdb:
+    image: ontotext/graphdb:10.4.0
+    ports:
+      - "7200:7200"
+    environment:
+      - GDB_HEAP_SIZE=2g
+    restart: unless-stopped
+    networks:
+      - network_gestbd
+
+  jupyter:
+    image: jupyter/scipy-notebook:python-3.8
+    container_name: jupyter-lab
+    ports:
+      - 8888:8888
+    volumes:
+      - "./jupyter_data:/home/jovyan/work" 
+    command: ["start-notebook.sh","--NotebookApp.token=''","--NotebookApp.password=''"]          
+    networks:
+      - network_gestbd
+
+volumes:
+  postgres_data:
+
+networks:
+  network_gestbd:
