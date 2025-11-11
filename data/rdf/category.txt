@@ -1,0 +1,102 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ma: <http://www.w3.org/ns/ma-ont#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sd: <http://www.w3.org/ns/sparql-service-description#> .
+@prefix schema: <http://schema.org/> .
+@prefix gest: <http://gestdb.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+gest:category_1 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Film & Animation" .
+
+gest:category_10 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Music" .
+
+gest:category_15 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Pets & Animals" .
+
+gest:category_17 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Sports" .
+
+gest:category_18 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Short Movies" .
+
+gest:category_19 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Travel & Events" .
+
+gest:category_2 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Autos & Vehicles" .
+
+gest:category_20 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Gaming" .
+
+gest:category_21 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Videoblogging" .
+
+gest:category_22 rdf:type wd:Q6421128 ;
+	wdt:P1476 "People & Blogs" .
+
+gest:category_23 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Comedy" .
+
+gest:category_24 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Entertainment" .
+
+gest:category_25 rdf:type wd:Q6421128 ;
+	wdt:P1476 "News & Politics" .
+
+gest:category_26 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Howto & Style" .
+
+gest:category_27 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Education" .
+
+gest:category_28 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Science & Technology" .
+
+gest:category_30 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Movies" .
+
+gest:category_31 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Anime/Animation" .
+
+gest:category_32 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Action/Adventure" .
+
+gest:category_33 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Classics" .
+
+gest:category_34 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Comedy" .
+
+gest:category_35 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Documentary" .
+
+gest:category_36 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Drama" .
+
+gest:category_37 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Family" .
+
+gest:category_38 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Foreign" .
+
+gest:category_39 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Horror" .
+
+gest:category_40 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Sci-Fi/Fantasy" .
+
+gest:category_41 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Thriller" .
+
+gest:category_42 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Shorts" .
+
+gest:category_43 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Shows" .
+
+gest:category_44 rdf:type wd:Q6421128 ;
+	wdt:P1476 "Trailers" .
+

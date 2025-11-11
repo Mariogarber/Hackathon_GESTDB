@@ -1,0 +1,100 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ma: <http://www.w3.org/ns/ma-ont#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sd: <http://www.w3.org/ns/sparql-service-description#> .
+@prefix schema: <http://schema.org/> .
+@prefix gest: <http://gestdb.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+gest:channel_UC1_uAIS3r8Vu6JjXWvastJg schema:name "Mathologer" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UC1_uAIS3r8Vu6JjXWvastJg" ;
+	wdt:P3744 "960000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@mathologer" .
+
+gest:channel_UC36xmz34q02JYaZYKrMwXng schema:name "Nate Gentile" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UC36xmz34q02JYaZYKrMwXng" ;
+	wdt:P3744 "2990000"^^xsd:integer ;
+	wdt:P407 "Español" ;
+	wdt:P910 "http://gestdb.org/category_@nategentile7" .
+
+gest:channel_UCHnyfMqiRRG1u-2MsSQLbXA schema:name "Veritasium" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCHnyfMqiRRG1u-2MsSQLbXA" ;
+	wdt:P3744 "19400000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@veritasium" .
+
+gest:channel_UCJ0-OtVpF0wOKEqT2Z1HEtA schema:name "ElectroBOOM" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCJ0-OtVpF0wOKEqT2Z1HEtA" ;
+	wdt:P3744 "8600000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@electroboom" .
+
+gest:channel_UCPH3Oz99Y_jrVBCQMjQZNSg schema:name "Memorias de Pez" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCPH3Oz99Y_jrVBCQMjQZNSg" ;
+	wdt:P3744 "2720000"^^xsd:integer ;
+	wdt:P407 "Español" ;
+	wdt:P910 "http://gestdb.org/category_@memoriasdepez" .
+
+gest:channel_UCY1kMZp36IQSyNx_9h4mpCg schema:name "Mark Rober" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCY1kMZp36IQSyNx_9h4mpCg" ;
+	wdt:P3744 "71700000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@markrober" .
+
+gest:channel_UCYO_jab_esuFRV4b17AJtAw schema:name "3Blue1Brown" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCYO_jab_esuFRV4b17AJtAw" ;
+	wdt:P3744 "7840000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@3blue1brown" .
+
+gest:channel_UCZEPItn2Nb62Zso5eohHAAA schema:name "BBC Timestamp" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCZEPItn2Nb62Zso5eohHAAA" ;
+	wdt:P3744 "897000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@bbctimestamp" .
+
+gest:channel_UC_4NoVAkQzeSaxCgm-to25A schema:name "Dr.Gajendra Purohit" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UC_4NoVAkQzeSaxCgm-to25A" ;
+	wdt:P3744 "1760000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@gajendrapurohit" .
+
+gest:channel_UCa6V1UVOXN4wDm7RDQDoa6g schema:name "El Traductor de Ingeniería" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCa6V1UVOXN4wDm7RDQDoa6g" ;
+	wdt:P3744 "1650000"^^xsd:integer ;
+	wdt:P407 "Español" ;
+	wdt:P910 "http://gestdb.org/category_@eltraductor_ok" .
+
+gest:channel_UCbdSYaPD-lr1kW27UJuk8Pw schema:name "QuantumFracture" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCbdSYaPD-lr1kW27UJuk8Pw" ;
+	wdt:P3744 "3920000"^^xsd:integer ;
+	wdt:P407 "Español" ;
+	wdt:P910 "http://gestdb.org/category_@quantumfracture" .
+
+gest:channel_UChtpOdya2W7F0V9FrVVzQCg schema:name "A toda leche" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UChtpOdya2W7F0V9FrVVzQCg" ;
+	wdt:P3744 "554000"^^xsd:integer ;
+	wdt:P407 "Español" ;
+	wdt:P910 "http://gestdb.org/category_@atodaleche" .
+
+gest:channel_UCxPD7bsocoAMq8Dj18kmGyQ schema:name "MoureDev by Brais Moure" ;
+	rdf:type wd:Q17558136 ;
+	wdt:P2397 "UCxPD7bsocoAMq8Dj18kmGyQ" ;
+	wdt:P3744 "763000"^^xsd:integer ;
+	wdt:P407 "Inglés" ;
+	wdt:P910 "http://gestdb.org/category_@mouredev" .
+
