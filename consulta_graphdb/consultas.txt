@@ -1,0 +1,13 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT ?canal ?sameAs ?p
+WHERE {
+  
+    ?canal owl:sameAs ?sameAs .
+    
+ SERVICE <https://dbpedia.org/sparql>{
+        ?sameAs ?p ?o
+    }
+}

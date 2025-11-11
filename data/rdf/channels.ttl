@@ -6,7 +6,7 @@
 @prefix gest: <http://gestdb.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
-@prefix dbp: <https://dbpedia.org/page/> .
+@prefix dbp: <http://dbpedia.org/resource/> .
 
 gest:channel_UC1_uAIS3r8Vu6JjXWvastJg schema:name "Mathologer" ;
 	rdf:type wd:Q17558136 ;

@@ -6,7 +6,8 @@ import datetime
 import math
 import time as time_module
 from dotenv import load_dotenv
-import os 
+import os
+import pandas as pd
 
 load_dotenv()
 
@@ -57,13 +58,6 @@ def _safe_iso_date(value):
         return str(value)
     except Exception:
         return None
-    
-def _safe_bool(value, default=False):
-    """Safely convert value to boolean"""
-    if isinstance(value, bool):
-        return value
-    else:
-        return default
 
 def convert_time_to_seconds(value):
     """Convert timedelta/time/string/num to seconds"""
@@ -191,7 +185,15 @@ def fetch_videos_from_postgres():
         rows = cursor.fetchall()
         cursor.close()
         connection.close()
-        
+
+        embeddings1 = pd.read_csv('/app/embeddings_data/video_embeddings_part1.csv')
+        embeddings1 = embeddings1[["title_embedding", "description_embedding", "topic_embedding"]]
+        embeddings2 = pd.read_csv('/app/embeddings_data/video_embeddings_part2.csv')
+        embeddings2 = embeddings2[["title_embedding", "description_embedding", "topic_embedding"]]
+        embeddings = pd.concat([embeddings1, embeddings2], ignore_index=True)
+
+        columns.extend(["title_embedding", "description_embedding", "topic_embedding"])
+        rows = [row + tuple(embeddings.iloc[i]) for i, row in enumerate(rows)]
         videos = [dict(zip(columns, row)) for row in rows]
         logger.info("Retrieved %d videos from PostgreSQL", len(videos))
         return videos
@@ -221,6 +223,12 @@ def fetch_comments_from_postgres():
         rows = cursor.fetchall()
         cursor.close()
         connection.close()
+
+        embeddings = pd.read_csv('/app/embeddings_data/comment_embeddings_part1.csv')
+        embeddings = embeddings[["comment_embedding"]]
+
+        columns.append("comment_embedding")
+        rows = [row + (embeddings.iloc[i]["comment_embedding"],) for i, row in enumerate(rows)]
         
         comments = [dict(zip(columns, row)) for row in rows]
         logger.info("Retrieved %d comments from PostgreSQL", len(comments))
