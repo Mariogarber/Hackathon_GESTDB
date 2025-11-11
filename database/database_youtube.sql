@@ -56,7 +56,7 @@ CREATE TABLE public.comment (
 	text text NOT NULL,
 	published_at date,
 	like_count integer,
-	is_possitive bool NOT NULL,
+	sentiment_score integer NOT NULL,
 	id_video varchar NOT NULL,
 	CONSTRAINT comment_pk PRIMARY KEY (id)
 

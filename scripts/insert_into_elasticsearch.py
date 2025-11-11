@@ -96,6 +96,7 @@ MAPPING_VIDEOS = {
             "view_count": {"type": "integer"},
             "like_count": {"type": "integer"},
             "language": {"type": "keyword"},
+            "description": {"type": "text", "analyzer": "standard"},
             "id_channel": {"type": "keyword"}
         }
     },
@@ -110,7 +111,7 @@ MAPPING_COMMENTS = {
             "text": {"type": "text", "analyzer": "standard"},
             "published_at": {"type": "date", "format": "strict_date_optional_time||epoch_millis"},
             "like_count": {"type": "integer"},
-            "is_possitive": {"type": "boolean"}
+            "sentiment_score": {"type": "integer"}
         }
     },
     "settings": {"number_of_shards": 1, "number_of_replicas": 0}
@@ -180,6 +181,7 @@ def fetch_videos_from_postgres():
             view_count,
             like_count,
             language,
+            description,
             id_channel
         FROM public.video
         """
@@ -210,7 +212,7 @@ def fetch_comments_from_postgres():
             published_at,
             text,
             like_count,
-            is_possitive
+            sentiment_score
         FROM public.comment
         """
         
@@ -315,7 +317,7 @@ def index_comments_bulk(es_client, comments, batch_size=500):
                 'text': _safe_str(comment.get('text')),
                 'published_at': _safe_iso_date(comment.get('published_at')),
                 'like_count': _safe_int(comment.get('like_count')),
-                'is_possitive': _safe_bool(comment.get('is_possitive'))
+                'sentiment_score': _safe_int(comment.get('sentiment_score'))
             }
             actions.append({"_index": ES_INDEX_COMMENTS, "_id": document_id, "_source": document})
 

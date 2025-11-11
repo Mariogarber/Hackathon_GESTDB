@@ -30,15 +30,6 @@ def safe_int_convert(value, default=0):
     except (ValueError, TypeError):
         return default
 
-def safe_bool_convert(value, default=False):
-    """Safely convert a value to boolean"""
-    if pd.isna(value) or value is None:
-        return default
-    try:
-        return bool(int(float(value)))
-    except (ValueError, TypeError):
-        return default
-
 def process_csv_and_insert():
     """Process CSV file and insert data into database"""
     try:
@@ -75,7 +66,7 @@ def process_csv_and_insert():
                     published_at = datetime.now().date()
                 
                 like_count = safe_int_convert(row['like_count'])
-                is_positive = safe_bool_convert(row['is_possitive'])
+                sentiment_score = safe_int_convert(row['sentiment_score'])
                 video_id = row['id_video'] if pd.notna(row['id_video']) else ""
                 
                 if not comment_id or not video_id:
@@ -85,14 +76,14 @@ def process_csv_and_insert():
                 
                 insert_query = """
                 INSERT INTO public.comment 
-                (id, text, published_at, like_count, is_possitive, id_video) 
+                (id, text, published_at, like_count, sentiment_score, id_video) 
                 VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO NOTHING
                 """
                 
                 cursor.execute(insert_query, (
                     comment_id, text, published_at, like_count, 
-                    is_positive, video_id
+                    sentiment_score, video_id
                 ))
                 
                 inserted_count += 1
