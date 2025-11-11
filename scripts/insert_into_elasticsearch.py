@@ -191,13 +191,67 @@ def fetch_videos_from_postgres():
         connection.close()
 
         embeddings1 = pd.read_csv('/app/data/embeddings_data/videos_embeddings.csv')
-        embeddings1 = embeddings1[["title_embedding", "description_embedding", "topic_embedding"]]
+        embeddings1 = embeddings1[["id", "title_embedding", "description_embedding", "topic_embedding"]]
+
+        df_sql["id"] = df_sql["id"].astype(str)
+        emb_df["id"] = emb_df["id"].astype(str)
+        merged = df_sql.merge(
+            emb_df[["id"] + expected_emb_cols].drop_duplicates(subset=["id"]),
+            on="id",
+            how="left"
+        )
+
 
         columns.extend(["title_embedding", "description_embedding", "topic_embedding"])
         rows = [row + tuple(embeddings1.iloc[i]) for i, row in enumerate(rows)]
         videos = [dict(zip(columns, row)) for row in rows]
         logger.info("Retrieved %d videos from PostgreSQL", len(videos))
         return videos
+    except Exception as error:
+        logger.error("Error fetching videos from PostgreSQL: %r", error)
+        raise
+def fetch_videos_from_postgres2():
+    """Fetch videos data from PostgreSQL"""
+    try:
+        connection = psycopg2.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        query = """
+        SELECT 
+            id,
+            title_raw,
+            duration,
+            topic,
+            published_at,
+            view_count,
+            like_count,
+            language,
+            description,
+            id_channel
+        FROM public.video
+        """
+        
+        # 1) Leer tabla SQL a DataFrame
+        df_sql = pd.read_sql(query, connection)
+        connection.close()
+
+        # 2) Leer CSV tal cual (sin parseos)
+        emb_df = pd.read_csv('/app/data/embeddings_data/videos_embeddings.csv')
+
+        # Asegurar que las columnas esperadas existen en el CSV (si no, las creamos vacías)
+        expected_emb_cols = ["title_embedding", "description_embedding", "topic_embedding"]
+
+        # 3) Merge por id si existe en el CSV (coerción a str para evitar mismatches simples)
+        df_sql["id"] = df_sql["id"].astype(str)
+        emb_df["id"] = emb_df["id"].astype(str)
+        merged = df_sql.merge(
+            emb_df[["id"] + expected_emb_cols].drop_duplicates(subset=["id"]),
+            on="id",
+            how="left"
+        )
+
+        # 5) Devolver lista de dicts (sin modificar embeddings)
+        return merged.to_dict(orient="records")
     except Exception as error:
         logger.error("Error fetching videos from PostgreSQL: %r", error)
         raise
@@ -272,15 +326,54 @@ def fetch_channels_from_postgres():
         logger.error("Error fetching channels from PostgreSQL: %r", error)
         raise
 
+def parse_embedding_string(embedding_str):
+    """Parse embedding string to list of floats"""
+    if embedding_str is None:
+        return []
+    try:
+        embedding_str = embedding_str.strip('[]')  # elimina corchetes al inicio/final
+        parts = embedding_str.split(',')
+        return [float(x) for x in parts]
+    except Exception:
+        return []
+
 def index_videos_bulk(es_client, videos, batch_size=500):
     """Index videos data to Elasticsearch in bulk"""
     actions = []
     total_indexed = 0
     error_count = 0
     
+    EXPECTED_DIMS = 384 # Define la dimensión esperada
+
     for video in videos:
         try:
-            document_id = _safe_str(video.get('id'))
+            document_id = _safe_str(video.get('id')) # Obtener ID primero para logs
+            
+            title_embedding = parse_embedding_string(video.get('title_embedding'))
+            description_embedding = parse_embedding_string(video.get('description_embedding'))
+            topic_embedding = parse_embedding_string(video.get('topic_embedding'))
+
+            
+            # Comprobar si la dimensión es incorrecta
+            if len(title_embedding) != EXPECTED_DIMS:
+                title_embedding = None
+            # Comprobar si es un vector de magnitud cero
+            elif all(v == 0.0 for v in title_embedding):
+                logger.warning("Video %s: 'title_embedding' es un vector cero. Se anulará.", document_id)
+                title_embedding = None
+
+            if len(description_embedding) != EXPECTED_DIMS:
+                description_embedding = None
+            elif all(v == 0.0 for v in description_embedding):
+                logger.warning("Video %s: 'description_embedding' es un vector cero. Se anulará.", document_id)
+                description_embedding = None
+
+            if len(topic_embedding) != EXPECTED_DIMS:
+                topic_embedding = None
+            elif all(v == 0.0 for v in topic_embedding):
+                logger.warning("Video %s: 'topic_embedding' es un vector cero. Se anulará.", document_id)
+                topic_embedding = None
+            
             document = {
                 'id': document_id,
                 'title_raw': _safe_str(video.get('title_raw')),
@@ -290,14 +383,27 @@ def index_videos_bulk(es_client, videos, batch_size=500):
                 'view_count': _safe_int(video.get('view_count')),
                 'like_count': _safe_int(video.get('like_count')),
                 'language': _safe_str(video.get('language')),
-                'id_channel': _safe_str(video.get('id_channel'))
+                'id_channel': _safe_str(video.get('id_channel')),
+                'description': _safe_str(video.get('description')),
+                'title_embedding': title_embedding,
+                'description_embedding': description_embedding,
+                'topic_embedding': topic_embedding
             }
             actions.append({"_index": ES_INDEX_VIDEOS, "_id": document_id, "_source": document})
 
             if len(actions) >= batch_size:
-                success_count, _ = bulk(es_client, actions, request_timeout=60)
-                total_indexed += success_count
-                actions = []
+                try:
+                    success_count, failed_docs = bulk(es_client, actions, request_timeout=60, raise_on_error=False)
+                    total_indexed += success_count
+                    if failed_docs:
+                         logger.warning("%d document(s) failed to index. Sample error: %s", len(failed_docs), failed_docs[0])
+                         error_count += len(failed_docs)
+
+                except Exception as bulk_error:
+                    logger.error("Error during bulk operation: %r", bulk_error)
+                    error_count += len(actions)
+                
+                actions = [] # Limpiar lote
                 logger.info("Indexed %d videos so far", total_indexed)
 
         except Exception as error:
@@ -306,8 +412,11 @@ def index_videos_bulk(es_client, videos, batch_size=500):
 
     if actions:
         try:
-            success_count, _ = bulk(es_client, actions, request_timeout=60)
+            success_count, failed_docs = bulk(es_client, actions, request_timeout=60, raise_on_error=False)
             total_indexed += success_count
+            if failed_docs:
+                logger.warning("%d final document(s) failed to index. Sample error: %s", len(failed_docs), failed_docs[0])
+                error_count += len(failed_docs)
         except Exception as error:
             error_count += len(actions)
             logger.error("Error in final videos bulk operation: %r", error)
@@ -320,22 +429,43 @@ def index_comments_bulk(es_client, comments, batch_size=500):
     total_indexed = 0
     error_count = 0
     
+    EXPECTED_DIMS = 384 # Define la dimensión esperada
+
     for comment in comments:
         try:
             document_id = _safe_str(comment.get('id'))
+            comment_embedding = parse_embedding_string(comment.get('comment_embedding'))
+            
+            # Comprobar si la dimensión es incorrecta (ej. [])
+            if len(comment_embedding) != EXPECTED_DIMS:
+                comment_embedding = None
+            # Comprobar si es un vector de magnitud cero
+            elif all(v == 0.0 for v in comment_embedding):
+                logger.warning("Comment %s: 'comment_embedding' es un vector cero. Se anulará.", document_id)
+                comment_embedding = None
+                
             document = {
                 'id': document_id,
                 'id_video': _safe_str(comment.get('id_video')),
                 'text': _safe_str(comment.get('text')),
                 'published_at': _safe_iso_date(comment.get('published_at')),
                 'like_count': _safe_int(comment.get('like_count')),
-                'sentiment_score': _safe_int(comment.get('sentiment_score'))
+                'sentiment_score': _safe_int(comment.get('sentiment_score')),
+                'comment_embedding': comment_embedding
             }
             actions.append({"_index": ES_INDEX_COMMENTS, "_id": document_id, "_source": document})
 
             if len(actions) >= batch_size:
-                success_count, _ = bulk(es_client, actions, request_timeout=60)
-                total_indexed += success_count
+                try:
+                    success_count, failed_docs = bulk(es_client, actions, request_timeout=60, raise_on_error=False)
+                    total_indexed += success_count
+                    if failed_docs:
+                         logger.warning("%d comment(s) failed to index. Sample error: %s", len(failed_docs), failed_docs[0])
+                         error_count += len(failed_docs)
+                except Exception as bulk_error:
+                    logger.error("Error during comments bulk operation: %r", bulk_error)
+                    error_count += len(actions)
+                
                 actions = []
                 logger.info("Indexed %d comments so far", total_indexed)
 
@@ -345,8 +475,11 @@ def index_comments_bulk(es_client, comments, batch_size=500):
 
     if actions:
         try:
-            success_count, _ = bulk(es_client, actions, request_timeout=60)
+            success_count, failed_docs = bulk(es_client, actions, request_timeout=60, raise_on_error=False)
             total_indexed += success_count
+            if failed_docs:
+                logger.warning("%d final comment(s) failed to index. Sample error: %s", len(failed_docs), failed_docs[0])
+                error_count += len(failed_docs)
         except Exception as error:
             error_count += len(actions)
             logger.error("Error in final comments bulk operation: %r", error)
@@ -400,7 +533,7 @@ def sync_postgres_to_elasticsearch():
     es_client = connect_es_with_retries(ES_URL, retries=6, wait_seconds=5)
     create_indices(es_client)
 
-    videos = fetch_videos_from_postgres()
+    videos = fetch_videos_from_postgres2()
     comments = fetch_comments_from_postgres()
     channels = fetch_channels_from_postgres()
 
