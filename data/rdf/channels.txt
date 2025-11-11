@@ -6,6 +6,7 @@
 @prefix gest: <http://gestdb.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix dbp: <https://dbpedia.org/page/> .
 
 gest:channel_UC1_uAIS3r8Vu6JjXWvastJg schema:name "Mathologer" ;
 	rdf:type wd:Q17558136 ;
@@ -32,6 +33,7 @@ gest:channel_UCHnyfMqiRRG1u-2MsSQLbXA schema:name "Veritasium" ;
 	wdt:P407 "Inglés" ;
 	wdt:P910 "http://gestdb.org/category_@veritasium" ;
 	owl:sameAs wd:Q7921397 ;
+	owl:sameAs dbp:Derek_Muller ;
     schema:sameAs <https://www.wikidata.org/wiki/Q7921397>.
 
 gest:channel_UCJ0-OtVpF0wOKEqT2Z1HEtA schema:name "ElectroBOOM" ;
@@ -41,6 +43,7 @@ gest:channel_UCJ0-OtVpF0wOKEqT2Z1HEtA schema:name "ElectroBOOM" ;
 	wdt:P407 "Inglés" ;
 	wdt:P910 "http://gestdb.org/category_@electroboom" ;
 	owl:sameAs wd:Q18643733 ;
+	owl:sameAs dbp:ElectroBOOM ;
     schema:sameAs <https://www.wikidata.org/wiki/Q18643733> .
 
 gest:channel_UCPH3Oz99Y_jrVBCQMjQZNSg schema:name "Memorias de Pez" ;
@@ -66,6 +69,7 @@ gest:channel_UCYO_jab_esuFRV4b17AJtAw schema:name "3Blue1Brown" ;
 	wdt:P407 "Inglés" ;
 	wdt:P910 "http://gestdb.org/category_@3blue1brown" ;
 	owl:sameAs wd:Q55345122 ;
+	owl:sameAs dbp:3Blue1Brown ;
     schema:sameAs <https://www.wikidata.org/wiki/Q55345122> .
 
 gest:channel_UCZEPItn2Nb62Zso5eohHAAA schema:name "BBC Timestamp" ;
