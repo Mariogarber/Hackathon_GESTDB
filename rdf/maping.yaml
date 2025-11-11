@@ -1,5 +1,5 @@
 prefixes:
-  ex: "http://example.org/"
+  gest: "http://gestdb.org/"
   wd: "http://www.wikidata.org/entity/"
   wdt: "http://www.wikidata.org/prop/direct/"
   xsd: "http://www.w3.org/2001/XMLSchema#"
@@ -23,44 +23,44 @@ mappings:
         username: postgres
         password: mysecretpassword
 
-    s: ex:channel_$(ChannelID)
+    s: gest:channel_$(id)
     po:
       - [a, wd:Q17558136]                   # YouTube channel
-      - [schema:name, $(ChannelName)]
-      - [wdt:P2397, $(ChannelID)]           # YouTube channel ID
-      - [wdt:P407, $(Language)]             # language of the channel
-      - [wdt:P3744, $(Subscribers), xsd:integer] # number of subscribers
-      - [wdt:P910, ex:category_$(CategoryID)] # main category relation
+      - [schema:name, $(name)]
+      - [wdt:P2397, $(id)]           # YouTube channel ID
+      - [wdt:P407, $(language)]             # language of the channel
+      - [wdt:P3744, $(suscriber_count), xsd:integer] # number of subscribers
+      - [wdt:P910, gest:category_$(category_link)] # main category relation
 
   VideoMapping:
     sources:
       - [data/videos.csv~csv]
-    s: ex:video_$(VideoID)
+    s: gest:video_$(id)
     po:
       - [a, wd:Q63412991]                   # YouTube video
-      - [wdt:P1476, $(Title)]
-      - [wdt:P577, $(PublicationDate)]    # publication date entity
-      - [wdt:P2047, $(Duration), xsd:integer]   # duration in seconds
-      - [wdt:P10649, $(Likes), xsd:integer]    # number of likes
-      - [wdt:P10651, $(Comments), xsd:integer]  # number of comments
-      - [wdt:P5436, $(Views), xsd:integer]  # number of views
-      - [schema:description, $(Description)]        # video description
-      - [wdt:P123, ex:channel_$(ChannelID)]  # publicado por canal
+      - [wdt:P1476, $(title_raw)]
+      - [wdt:P577, $(published_at)]    # publication date entity
+      - [wdt:P2047, $(duration), xsd:integer]   # duration in seconds
+      - [wdt:P10649, $(like_count), xsd:integer]    # number of likes
+      - [wdt:P10651, $(comment_count), xsd:integer]  # number of comments
+      - [wdt:P5436, $(view_count), xsd:integer]  # number of views
+      - [wdt:P123, gest:channel_$(id_channel)]  # publicado por canal
 
   CommentMapping:
     sources:
       - [data/comments.csv~csv]
-    s: ex:comment_$(CommentID)
+    s: gest:comment_$(id)
     po:
       - [a, wd:Q25345994]                   # Comment
-      - [wdt:P577, $(PublicationDate), xsd:date]
-      - [wdt:P10649, $(Likes), xsd:integer]
-      - [wdt:P1433, ex:video_$(VideoID)]     # pertenece a vídeo
+      - [wdt:P577, $(published_at), xsd:date]
+      - [wdt:P10649, $(like_count), xsd:integer]
+      - [wdt:P1433, gest:video_$(id_video)]     # pertenece a vídeo
+      - [wdt:P1476, $(text)]
 
   CategoryMapping:
     sources:
       - [data/categories.csv~csv]
-    s: ex:category_$(CategoryID)
+    s: gest:category_$(id)
     po:
       - [a, wd:Q6421128]
-      - [rdfs:label, $(CategoryName)]
+      - [rdfs:label, $(name)]
