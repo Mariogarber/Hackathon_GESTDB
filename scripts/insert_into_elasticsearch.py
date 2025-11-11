@@ -214,7 +214,6 @@ def fetch_videos_from_postgres2():
     """Fetch videos data from PostgreSQL"""
     try:
         connection = psycopg2.connect(**DB_CONFIG)
-        cursor = connection.cursor()
         
         query = """
         SELECT 
@@ -260,7 +259,6 @@ def fetch_comments_from_postgres():
     """Fetch comments data from PostgreSQL"""
     try:
         connection = psycopg2.connect(**DB_CONFIG)
-        cursor = connection.cursor()
         
         query = """
         SELECT 
@@ -273,24 +271,27 @@ def fetch_comments_from_postgres():
         FROM public.comment
         """
         
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        df_sql = pd.read_sql(query, connection)
         connection.close()
 
         embeddings1 = pd.read_csv('/app/data/embeddings_data/comments_embeddings_part1.csv')
         embeddings1 = embeddings1[["comment_embedding"]]
         embeddings2 =pd.read_csv('/app/data/embeddings_data/comments_embeddings_part2.csv')
         embeddings2 = embeddings2[["comment_embedding"]]
-        embeddings = pd.concat([embeddings1, embeddings2], ignore_index=True)
+        embeddings3 = pd.read_csv('/app/data/embeddings_data/comments_embeddings_part3.csv')
+        embeddings3 = embeddings3[["comment_embedding"]]
+        embeddings = pd.concat([embeddings1, embeddings2, embeddings3], ignore_index=True)
 
-        columns.append("comment_embedding")
-        rows = [row + (embeddings.iloc[i]["comment_embedding"],) for i, row in enumerate(rows)]
+        expected_emb_cols = ["comment_embedding"]
+        df_sql["id"] = df_sql["id"].astype(str)
+        embeddings["id"] = embeddings.index.astype(str)
+        merged = df_sql.merge(
+            embeddings[["id"] + expected_emb_cols].drop_duplicates(subset=["id"]),
+            on="id",
+            how="left"
+        )
         
-        comments = [dict(zip(columns, row)) for row in rows]
-        logger.info("Retrieved %d comments from PostgreSQL", len(comments))
-        return comments
+        return merged.to_dict(orient="records")
     except Exception as error:
         logger.error("Error fetching comments from PostgreSQL: %r", error)
         raise
