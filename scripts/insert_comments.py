@@ -66,7 +66,7 @@ def process_csv_and_insert():
                     published_at = datetime.now().date()
                 
                 like_count = safe_int_convert(row['like_count'])
-                sentiment_score = safe_int_convert(row['sentiment_score'])
+                sentiment_score = row['sentiment_score']
                 video_id = row['id_video'] if pd.notna(row['id_video']) else ""
                 
                 if not comment_id or not video_id:
