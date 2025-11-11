@@ -12,49 +12,61 @@ gest:channel_UC1_uAIS3r8Vu6JjXWvastJg schema:name "Mathologer" ;
 	wdt:P2397 "UC1_uAIS3r8Vu6JjXWvastJg" ;
 	wdt:P3744 "960000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
-	wdt:P910 "http://gestdb.org/category_@mathologer" .
+	wdt:P910 "http://gestdb.org/category_@mathologer";
+	owl:sameAs wd:Q47493094 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q47493094> .
 
 gest:channel_UC36xmz34q02JYaZYKrMwXng schema:name "Nate Gentile" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UC36xmz34q02JYaZYKrMwXng" ;
 	wdt:P3744 "2990000"^^xsd:integer ;
 	wdt:P407 "Español" ;
-	wdt:P910 "http://gestdb.org/category_@nategentile7" .
+	wdt:P910 "http://gestdb.org/category_@nategentile7" ;
+	owl:sameAs wd:Q111686858 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q111686858> .
 
 gest:channel_UCHnyfMqiRRG1u-2MsSQLbXA schema:name "Veritasium" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UCHnyfMqiRRG1u-2MsSQLbXA" ;
 	wdt:P3744 "19400000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
-	wdt:P910 "http://gestdb.org/category_@veritasium" .
+	wdt:P910 "http://gestdb.org/category_@veritasium" ;
+	owl:sameAs wd:Q7921397 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q7921397>.
 
 gest:channel_UCJ0-OtVpF0wOKEqT2Z1HEtA schema:name "ElectroBOOM" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UCJ0-OtVpF0wOKEqT2Z1HEtA" ;
 	wdt:P3744 "8600000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
-	wdt:P910 "http://gestdb.org/category_@electroboom" .
+	wdt:P910 "http://gestdb.org/category_@electroboom" ;
+	owl:sameAs wd:Q18643733 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q18643733> .
 
 gest:channel_UCPH3Oz99Y_jrVBCQMjQZNSg schema:name "Memorias de Pez" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UCPH3Oz99Y_jrVBCQMjQZNSg" ;
 	wdt:P3744 "2720000"^^xsd:integer ;
 	wdt:P407 "Español" ;
-	wdt:P910 "http://gestdb.org/category_@memoriasdepez" .
+	wdt:P910 "http://gestdb.org/category_@memoriasdepez".
 
 gest:channel_UCY1kMZp36IQSyNx_9h4mpCg schema:name "Mark Rober" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UCY1kMZp36IQSyNx_9h4mpCg" ;
 	wdt:P3744 "71700000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
-	wdt:P910 "http://gestdb.org/category_@markrober" .
+	wdt:P910 "http://gestdb.org/category_@markrober" ;
+	owl:sameAs wd:Q7921397 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q7921397> .
 
 gest:channel_UCYO_jab_esuFRV4b17AJtAw schema:name "3Blue1Brown" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UCYO_jab_esuFRV4b17AJtAw" ;
 	wdt:P3744 "7840000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
-	wdt:P910 "http://gestdb.org/category_@3blue1brown" .
+	wdt:P910 "http://gestdb.org/category_@3blue1brown" ;
+	owl:sameAs wd:Q55345122 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q55345122> .
 
 gest:channel_UCZEPItn2Nb62Zso5eohHAAA schema:name "BBC Timestamp" ;
 	rdf:type wd:Q17558136 ;
@@ -82,14 +94,16 @@ gest:channel_UCbdSYaPD-lr1kW27UJuk8Pw schema:name "QuantumFracture" ;
 	wdt:P2397 "UCbdSYaPD-lr1kW27UJuk8Pw" ;
 	wdt:P3744 "3920000"^^xsd:integer ;
 	wdt:P407 "Español" ;
-	wdt:P910 "http://gestdb.org/category_@quantumfracture" .
+	wdt:P910 "http://gestdb.org/category_@quantumfracture" ;
+	owl:sameAs wd:Q117187889 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q117187889> .
 
 gest:channel_UChtpOdya2W7F0V9FrVVzQCg schema:name "A toda leche" ;
 	rdf:type wd:Q17558136 ;
 	wdt:P2397 "UChtpOdya2W7F0V9FrVVzQCg" ;
 	wdt:P3744 "554000"^^xsd:integer ;
 	wdt:P407 "Español" ;
-	wdt:P910 "http://gestdb.org/category_@atodaleche" .
+	wdt:P910 "http://gestdb.org/category_@atodaleche".
 
 gest:channel_UCxPD7bsocoAMq8Dj18kmGyQ schema:name "MoureDev by Brais Moure" ;
 	rdf:type wd:Q17558136 ;
