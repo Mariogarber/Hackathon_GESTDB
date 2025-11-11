@@ -56,8 +56,8 @@ gest:channel_UCY1kMZp36IQSyNx_9h4mpCg schema:name "Mark Rober" ;
 	wdt:P3744 "71700000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
 	wdt:P910 "http://gestdb.org/category_@markrober" ;
-	owl:sameAs wd:Q7921397 ;
-    schema:sameAs <https://www.wikidata.org/wiki/Q7921397> .
+	owl:sameAs wd:Q24088544 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q24088544> .
 
 gest:channel_UCYO_jab_esuFRV4b17AJtAw schema:name "3Blue1Brown" ;
 	rdf:type wd:Q17558136 ;
