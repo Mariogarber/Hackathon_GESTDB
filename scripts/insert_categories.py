@@ -66,7 +66,7 @@ def insert_categories(connection, categories):
 
 def main():
     """Main function"""
-    json_file_path = "/app/data/categories_data.json"
+    json_file_path = "/app/data/api_data/categories_data.json"
     
     if not os.path.exists(json_file_path):
         logging.error(f"File not found: {json_file_path}")

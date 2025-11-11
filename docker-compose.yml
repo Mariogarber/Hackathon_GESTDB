@@ -52,7 +52,7 @@ services:
       - elasticsearch
     volumes:
       - ./scripts:/app/scripts
-      - ./data/api_data:/app/data
+      - ./data:/app/data
       - ./requirements.txt:/app/requirements.txt 
       - ./config/.env:/app/.env 
     working_dir: /app

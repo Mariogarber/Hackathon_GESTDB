@@ -91,7 +91,10 @@ MAPPING_VIDEOS = {
             "like_count": {"type": "integer"},
             "language": {"type": "keyword"},
             "description": {"type": "text", "analyzer": "standard"},
-            "id_channel": {"type": "keyword"}
+            "id_channel": {"type": "keyword"}, 
+            "title_embedding": {"type": "dense_vector","dims": 384, "index": True,"similarity": "cosine"}, 
+            "description_embedding": {"type": "dense_vector","dims": 384, "index": True,"similarity": "cosine"}, 
+            "topic_embedding":{"type": "dense_vector","dims": 384, "index": True,"similarity": "cosine"}
         }
     },
     "settings": {"number_of_shards": 1, "number_of_replicas": 0}
@@ -105,7 +108,8 @@ MAPPING_COMMENTS = {
             "text": {"type": "text", "analyzer": "standard"},
             "published_at": {"type": "date", "format": "strict_date_optional_time||epoch_millis"},
             "like_count": {"type": "integer"},
-            "sentiment_score": {"type": "integer"}
+            "sentiment_score": {"type": "integer"}, 
+            "comment_embedding": {"type": "dense_vector","dims": 384, "index": True,"similarity": "cosine"}, 
         }
     },
     "settings": {"number_of_shards": 1, "number_of_replicas": 0}
@@ -186,14 +190,11 @@ def fetch_videos_from_postgres():
         cursor.close()
         connection.close()
 
-        embeddings1 = pd.read_csv('/app/embeddings_data/video_embeddings_part1.csv')
+        embeddings1 = pd.read_csv('/app/data/embeddings_data/videos_embeddings.csv')
         embeddings1 = embeddings1[["title_embedding", "description_embedding", "topic_embedding"]]
-        embeddings2 = pd.read_csv('/app/embeddings_data/video_embeddings_part2.csv')
-        embeddings2 = embeddings2[["title_embedding", "description_embedding", "topic_embedding"]]
-        embeddings = pd.concat([embeddings1, embeddings2], ignore_index=True)
 
         columns.extend(["title_embedding", "description_embedding", "topic_embedding"])
-        rows = [row + tuple(embeddings.iloc[i]) for i, row in enumerate(rows)]
+        rows = [row + tuple(embeddings1.iloc[i]) for i, row in enumerate(rows)]
         videos = [dict(zip(columns, row)) for row in rows]
         logger.info("Retrieved %d videos from PostgreSQL", len(videos))
         return videos
@@ -224,8 +225,11 @@ def fetch_comments_from_postgres():
         cursor.close()
         connection.close()
 
-        embeddings = pd.read_csv('/app/embeddings_data/comment_embeddings_part1.csv')
-        embeddings = embeddings[["comment_embedding"]]
+        embeddings1 = pd.read_csv('/app/data/embeddings_data/comments_embeddings_part1.csv')
+        embeddings1 = embeddings1[["comment_embedding"]]
+        embeddings2 =pd.read_csv('/app/data/embeddings_data/comments_embeddings_part2.csv')
+        embeddings2 = embeddings2[["comment_embedding"]]
+        embeddings = pd.concat([embeddings1, embeddings2], ignore_index=True)
 
         columns.append("comment_embedding")
         rows = [row + (embeddings.iloc[i]["comment_embedding"],) for i, row in enumerate(rows)]

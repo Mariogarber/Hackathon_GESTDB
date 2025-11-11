@@ -203,7 +203,7 @@ def insert_videos_from_json_file(json_file_path):
         return 0
 
 if __name__ == "__main__":
-    json_file_path = "/app/data/videos_data.json"
+    json_file_path = "/app/data/api_data/videos_data.json"
     logger.info("Starting video data import process")
     total_inserted = insert_videos_from_json_file(json_file_path)
     logger.info(f"TOTAL: {total_inserted} videos inserted successfully")

@@ -33,7 +33,7 @@ def safe_int_convert(value, default=0):
 def process_csv_and_insert():
     """Process CSV file and insert data into database"""
     try:
-        df = pd.read_csv('/app/data/comments_data.csv', encoding='utf-8')
+        df = pd.read_csv('/app/data/api_data/comments_data.csv', encoding='utf-8')
         logging.info(f"Successfully loaded CSV file with {len(df)} records")
     except Exception as error:
         logging.error(f"Error loading CSV file: {error}")

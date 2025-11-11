@@ -162,7 +162,7 @@ if __name__ == "__main__":
     logging.info("Starting YouTube channels importer")
     logging.info("=" * 50)
     
-    json_file = "/app/data/channels_data.json"
+    json_file = "/app/data/api_data/channels_data.json"
     
     if not os.path.exists(json_file):
         logging.error(f"File not found: {json_file}")
