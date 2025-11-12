@@ -1,7 +1,0 @@
-PASOS:
-1. Levantar el contenedor con el comando: 
-        docker-compose up -d
-2. Verificar que se ha creado correctamente el diagrama relacional: 
-        docker-compose logs -f postgres
-3. Acceder a la base de datos y listar las tablas para comprobar que se han creado correctamente: 
-        docker exec -it postgresql psql -U postgres -d bbdd_api_youtube -c "\dt"
