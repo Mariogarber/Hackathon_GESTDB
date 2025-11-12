@@ -58,7 +58,7 @@ Se crean índices para acelerar consultas por `published_at` y `language` en las
 
 5. **RDF y GraphDB**:  la carpeta `rdf` contiene ficheros `.ttl` que representan la misma información en formato de grafos de conocimiento.  El script `generate_comments.py` convierte el CSV de comentarios en triples RDF usando `rdflib`, añadiendo propiedades como fecha de creación, número de likes y texto del comentario.  El contenedor `graphdb` sirve para cargar estos ficheros y realizar consultas SPARQL.  El archivo `consultas.txt` ofrece ejemplos de consultas para explorar las propiedades de los canales o analizar top vídeos.
 
-6. **Análisis y visualizaciones**:  en la carpeta `results` se incluyen notebooks con consultas SQL sobre PostgreSQL.  Por ejemplo, uno de ellos calcula el promedio de duración, likes y comentarios por canal, y genera gráficos de barras; otro analiza la correlación entre likes y comentarios en periodos vacacionales frente a periodos lectivos; otro agrupa vídeos por franja horaria para estudiar la interacción a lo largo del día.  Los notebooks de `sparql_queries.ipynb` contienen ejemplos de consultas a DBpedia/Wikidata para enriquecer la base de datos con metadatos externos.
+6. **Análisis y visualizaciones**:  en la carpeta `results` se incluyen notebooks con consultas SQL sobre PostgreSQL.  Por ejemplo, uno de ellos calcula el promedio de duración, likes y comentarios por canal, y genera gráficos de barras; otro analiza la correlación entre likes y comentarios en periodos vacacionales frente a periodos lectivos; otro agrupa vídeos por franja horaria para estudiar la interacción a lo largo del día. En resumen, se encuentran todas las consultas realizadas sobre los datos.
 
 ## Despliegue y ejecución
 
@@ -78,11 +78,10 @@ Se crean índices para acelerar consultas por `published_at` y `language` en las
    
 
 ## Licencia y uso de datos
-El código de este repositorio se publica bajo la licencia MIT.
+El código de este repositorio se publica bajo la licencia Apache 2.0.
 
 Los datos empleados provienen de la [YouTube Data API v3](https://developers.google.com/youtube/v3) y están sujetos a sus términos de servicio.  
-Por tanto, no se redistribuyen los datos brutos obtenidos de YouTube, sino únicamente información derivada (estadísticas agregadas, embeddings, y resultados analíticos).  
-El uso de este proyecto implica la aceptación de las políticas de YouTube API Services.
+Por tanto, no se redistribuyen los datos brutos obtenidos de YouTube, sino únicamente información derivada y editada en JSON(filtros, estadísticas agregadas, embeddings, y resultados analíticos).  
 
 ## Contacto
 

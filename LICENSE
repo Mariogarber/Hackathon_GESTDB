@@ -1,33 +1,44 @@
-MIT License
+Apache License  
+Version 2.0, January 2004  
+http://www.apache.org/licenses/  
 
-Copyright (c) 2025 Mario Garber and contributors
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Copyright 2025 Mario Garber and contributors
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Definitions.  
+   "License" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.  
+   "Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.  
+   "You" (or "Your") shall mean an individual or legal entity exercising permissions granted by this License.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. Grant of Copyright License.  
+   Subject to the terms and conditions of this License, each Contributor hereby grants You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute the Work and such Derivative Works in Source or Object form.
+
+3. Grant of Patent License.  
+   Each Contributor grants You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work.
+
+4. Redistribution.  
+   You may reproduce and distribute copies of the Work or Derivative Works thereof in any medium, with or without modifications, and in Source or Object form, provided that You meet the following conditions:  
+   - You must give proper attribution to the original authors by including the following notice:  
+     **"Based on work by the developer team and contributors (https://github.com/Mariogarber/Hackathon_GESTDB)"**  
+   - You must include a copy of this License in every distribution.  
+   - You must state any significant changes made to the original version.  
+
+5. Disclaimer of Warranty.  
+   Unless required by applicable law or agreed to in writing, Licensor provides the Work on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
+
+6. Limitation of Liability.  
+   In no event shall the Licensor be liable for any damages arising in any way out of the use or inability to use the Work.
+
+END OF TERMS AND CONDITIONS
 
 ------------------------------------------------------------
 
 NOTICE ON DATA USAGE
 
-This project uses data retrieved from the YouTube Data API v3.
-Such data remains subject to the YouTube API Services Terms of Service:
-https://developers.google.com/youtube/terms/api-services-terms-of-service
+This project uses data retrieved from the YouTube Data API v3.  
+Such data remains subject to the YouTube API Services Terms of Service:  
+https://developers.google.com/youtube/terms/api-services-terms-of-service  
 
-No raw data obtained from the YouTube API is redistributed through this repository.
-Only processed, aggregated, or derived information (e.g., statistics, embeddings, or analyses)
-is included.
+No raw data obtained from the YouTube API is redistributed through this repository.  
+Only processed, aggregated, or derived information (e.g., statistics, embeddings, or analyses) is included.
