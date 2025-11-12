@@ -85,11 +85,14 @@ Se crean índices para acelerar consultas por `published_at` y `language` en las
 
 5. Una vez terminado, puedes acceder a pgAdmin para explorar la base de datos, a Elasticsearch para comprobar que existen los índices `videos`, `comments` y `channels`, y a GraphDB para cargar los ficheros `.ttl` y realizar consultas SPARQL.  Los notebooks de `results` y `preprocess` pueden abrirse con JupyterLab para reproducir los análisis.
 
-## Licencia
+## Licencia y uso de datos
+El código de este repositorio se publica bajo la licencia MIT.
 
-La licencia no se ha especificado.  Se recomienda añadir un archivo `LICENSE` (por ejemplo, MIT o Apache 2.0) para clarificar las condiciones de uso.
+Los datos empleados provienen de la [YouTube Data API v3](https://developers.google.com/youtube/v3) y están sujetos a sus términos de servicio.  
+Por tanto, no se redistribuyen los datos brutos obtenidos de YouTube, sino únicamente información derivada (estadísticas agregadas, embeddings, y resultados analíticos).  
+El uso de este proyecto implica la aceptación de las políticas de YouTube API Services.
 
 ## Contacto
 
-Para dudas o sugerencias sobre el proyecto, puedes crear una issue en GitHub o contactar con el autor del repositorio.
+Para dudas o sugerencias sobre el proyecto, puedes crear una issue en GitHub o contactarnos.
 
