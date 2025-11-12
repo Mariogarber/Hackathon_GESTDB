@@ -98,7 +98,11 @@ services:
       - 8888:8888
     volumes:
       - "./volumenes/jupyter_data:/home/jovyan/work" 
-    command: ["start-notebook.sh","--NotebookApp.token=''","--NotebookApp.password=''"]          
+    command: >
+      sh -c "
+      pip install sentence-transformers &&
+      start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+      "         
     networks:
       - network_gestbd
 

@@ -10,3 +10,28 @@
 [INFO ] 2025-11-12 08:26:54,640 [main | c.o.g.r.s.SecurityUtil] Cluster gRPC server security is disabled
 [INFO ] 2025-11-12 08:26:55,389 [main | c.o.f.c.s.r.GraphDBRpcServer] Started gRPC server on port 7300 successfully
 [INFO ] 2025-11-12 08:27:02,122 [main | c.o.g.s.GraphDB] Started GraphDB in workbench mode at port 7200.
+[INFO ] 2025-11-12 08:51:54,195 [main | c.o.g.Config] Using 'jar:file:/opt/graphdb/dist/lib/graphdb-application-common-10.4.0.jar!/com/ontotext/graphdb/logback.xml' as logback's configuration file
+[INFO ] 2025-11-12 08:51:58,435 [main | c.o.g.s.GraphDB] Starting GraphDB in workbench mode.
+[INFO ] 2025-11-12 08:52:53,976 [main | c.o.g.Config] GraphDB Home directory: /opt/graphdb/home
+[INFO ] 2025-11-12 08:52:54,000 [main | c.o.g.Config] GraphDB Config directory: /opt/graphdb/home/conf
+[INFO ] 2025-11-12 08:52:54,022 [main | c.o.g.Config] GraphDB Data directory: /opt/graphdb/home/data
+[INFO ] 2025-11-12 08:52:54,042 [main | c.o.g.Config] GraphDB Work directory: /opt/graphdb/home/work
+[INFO ] 2025-11-12 08:52:54,060 [main | c.o.g.Config] GraphDB Logs directory: /opt/graphdb/home/logs
+[INFO ] 2025-11-12 08:53:09,764 [main | c.o.g.r.s.SecurityUtil] Cluster gRPC server security is disabled
+[INFO ] 2025-11-12 08:53:20,957 [main | c.o.f.c.s.r.GraphDBRpcServer] Started gRPC server on port 7300 successfully
+[WARN ] 2025-11-12 08:53:22,080 [main | o.e.r.s.h.DirectoryLockManager] Removing invalid lock 1@d25b275c76af
+[WARN ] 2025-11-12 08:54:16,430 [main | o.a.c.u.SessionIdGeneratorBase] Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [128] milliseconds.
+[INFO ] 2025-11-12 08:54:18,993 [main | c.o.g.s.GraphDB] Started GraphDB in workbench mode at port 7200.
+[INFO ] 2025-11-12 09:29:43,835 [Thread-3 | c.o.g.s.GraphDB] Stopping GraphDB.
+[INFO ] 2025-11-12 09:32:52,974 [main | c.o.g.Config] Using 'jar:file:/opt/graphdb/dist/lib/graphdb-application-common-10.4.0.jar!/com/ontotext/graphdb/logback.xml' as logback's configuration file
+[INFO ] 2025-11-12 09:32:56,661 [main | c.o.g.s.GraphDB] Starting GraphDB in workbench mode.
+[INFO ] 2025-11-12 09:35:27,427 [main | c.o.g.Config] GraphDB Home directory: /opt/graphdb/home
+[INFO ] 2025-11-12 09:35:27,448 [main | c.o.g.Config] GraphDB Config directory: /opt/graphdb/home/conf
+[INFO ] 2025-11-12 09:35:27,466 [main | c.o.g.Config] GraphDB Data directory: /opt/graphdb/home/data
+[INFO ] 2025-11-12 09:35:27,471 [main | c.o.g.Config] GraphDB Work directory: /opt/graphdb/home/work
+[INFO ] 2025-11-12 09:35:27,473 [main | c.o.g.Config] GraphDB Logs directory: /opt/graphdb/home/logs
+[INFO ] 2025-11-12 09:35:35,493 [main | c.o.g.r.s.SecurityUtil] Cluster gRPC server security is disabled
+[INFO ] 2025-11-12 09:35:38,621 [main | c.o.f.c.s.r.GraphDBRpcServer] Started gRPC server on port 7300 successfully
+[WARN ] 2025-11-12 09:36:25,235 [main | o.a.c.u.SessionIdGeneratorBase] Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [770] milliseconds.
+[INFO ] 2025-11-12 09:36:28,851 [main | c.o.g.s.GraphDB] Started GraphDB in workbench mode at port 7200.
+[INFO ] 2025-11-12 09:57:12,985 [Thread-3 | c.o.g.s.GraphDB] Stopping GraphDB.
