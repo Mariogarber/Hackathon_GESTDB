@@ -4,12 +4,12 @@
 
 - Mario García Berenguer - mario.gberenguer@alumnos.upm.es
 > @Mariogarber
-- Eder
-> @
-- Pedro
-> @
-- Pablo
-> @
+- Eder Tarifa Fernández - eder.tarifa@alumnos.upm.es 
+> @EderTarifa
+- Pedro Arroyo Urbina - pedro.arroyo@alumnos.upm.es
+> @PedroArroyo16
+- Pablo Chicharro Gómez - p.cgomez@alumnos.upm.es
+> @PabloCG13
 
 
 ## Descripción general

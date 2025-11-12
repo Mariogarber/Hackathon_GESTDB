@@ -97,7 +97,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="like_count">
 		<type name="integer" length="0"/>
 	</column>
-	<column name="is_possitive" not-null="true">
+	<column name="sentiment_score" not-null="true">
 		<type name="bool" length="0"/>
 	</column>
 	<constraint name="comment_pk" type="pk-constr" table="public.comment">
