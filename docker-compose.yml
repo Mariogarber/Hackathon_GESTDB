@@ -40,7 +40,7 @@ services:
     ports:
       - "9200:9200"
     volumes:
-      - ./elasticsearch_data:/usr/share/elasticsearch/data
+      - ./volumenes/elasticsearch_data:/usr/share/elasticsearch/data
     networks:
       - network_gestbd
 
@@ -63,15 +63,15 @@ services:
       echo 'Waiting for PostgreSQL to be ready...' &&
       sleep 15 &&
       echo 'Importing categories...' &&
-      python scripts/insert_categories.py &&
+      python scripts/insert_into_postgres/insert_categories.py &&
       echo 'Importing channels...' &&
-      python scripts/insert_channels.py &&
+      python scripts/insert_into_postgres/insert_channels.py &&
       echo 'Importing videos' &&
-      python scripts/insert_videos.py &&
+      python scripts/insert_into_postgres/insert_videos.py &&
       echo 'Importing comments' &&
-      python scripts/insert_comments.py &&
+      python scripts/insert_into_postgres/insert_comments.py &&
       echo 'Synchronizing with Elasticsearch...' &&
-      python scripts/insert_into_elasticsearch.py &&
+      python scripts/from_postgres_to_elastic/insert_into_elasticsearch.py &&
       echo 'All data successfully imported!' &&
       tail -f /dev/null
       "
@@ -85,6 +85,8 @@ services:
       - "7200:7200"
     environment:
       - GDB_HEAP_SIZE=2g
+    volumes:
+      - ./volumenes/graphdb_data:/opt/graphdb/home
     restart: unless-stopped
     networks:
       - network_gestbd
@@ -95,7 +97,7 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - "./jupyter_data:/home/jovyan/work" 
+      - "./volumenes/jupyter_data:/home/jovyan/work" 
     command: ["start-notebook.sh","--NotebookApp.token=''","--NotebookApp.password=''"]          
     networks:
       - network_gestbd
