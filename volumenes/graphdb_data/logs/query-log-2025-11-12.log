@@ -1,0 +1,2216 @@
+[INFO ] 2025-11-12 10:37:05,113 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:37:06,592 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:37:08,110 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:37:38,895 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:37:42,490 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:37:43,023 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:43:19,703 [repositories/GESTDB | c.o.t.m.MonitorRepositoryConnection] Incoming update: CLEAR DEFAULT
+[INFO ] 2025-11-12 10:44:21,432 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:44:37,273 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:44:54,750 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 10:45:08,508 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 11:07:37,386 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[INFO ] 2025-11-12 11:40:21,817 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[ERROR] 2025-11-12 12:32:40,272 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 1497563ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT ?continentGroup ?categoryName ?video ?title ?views
+WHERE {
+  # --- 1️⃣ Datos locales: vídeos, categorías y canales ---
+  ?video a wd:Q63412991 ;              # video
+         wdt:P123 ?channel ;            # canal asociado (ajusta tu predicado local si es distinto)
+         wdt:P910 ?category ;         # categoría (ajústalo también si usas otro)
+         wdt:P5436 ?views ;            # número de visualizaciones
+         wdt:P1476 ?title .            # título del vídeo
+  ?channel owl:sameAs ?wikidataEntity .
+
+  # Nombre de la categoría local
+  OPTIONAL { ?category wdt:P1476 ?categoryName }
+
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Enriquecimiento federado: país/nacionalidad y continente ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }                    # persona
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }# organización
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- 3️⃣ Clasificación de continente ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+# --- 4️⃣ Seleccionamos solo el vídeo más visto de cada categoría y continente ---
+GROUP BY ?continentGroup ?categoryName ?video ?title ?views
+HAVING (?views = MAX(?views))
+ORDER BY ?continentGroup ?categoryName DESC(?views)
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[INFO ] 2025-11-12 12:40:42,861 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
+[ERROR] 2025-11-12 12:48:09,855 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 52051ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT ?continentGroup ?categoryName
+       (SAMPLE(?title) AS ?topVideoTitle)
+       (SAMPLE(?channel) AS ?topChannel)
+       (MAX(?views) AS ?maxViews)
+WHERE {
+  # --- 1️⃣ Video más visto por canal dentro de cada categoría ---
+  {
+    SELECT ?channel ?category (MAX(?views) AS ?maxViewsChannel)
+    WHERE {
+      ?video a wd:Q63412991 ;
+             wdt:P123 ?channel ;    # canal al que pertenece
+             wdt:P910 ?category ;   # categoría del vídeo (ajusta si es otro predicado)
+             wdt:P5436 ?views .     # número de visualizaciones
+    }
+    GROUP BY ?channel ?category
+  }
+
+  # --- 2️⃣ Recuperar los vídeos que cumplen esas condiciones ---
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel ;
+         wdt:P910 ?category ;
+         wdt:P5436 ?views ;
+         wdt:P1476 ?title .
+  FILTER(?views = ?maxViewsChannel)
+
+    { ?category wdt:P1476 ?categoryName }
+
+  # --- 3️⃣ Canal enlazado con Wikidata ---
+  ?channel owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 4️⃣ Obtener nacionalidad/país/continente del canal ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- 5️⃣ Clasificación de continentes ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+
+# --- 6️⃣ Agrupación final: solo por continente y categoría ---
+GROUP BY ?continentGroup ?categoryName
+ORDER BY ?continentGroup ?categoryName
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 12:51:17,985 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 120431ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT ?continentGroup ?categoryName
+       (SAMPLE(?title) AS ?topVideoTitle)
+       (SAMPLE(?channel) AS ?topChannel)
+       (MAX(?views) AS ?maxViews)
+WHERE {
+  # --- 1️⃣ Video más visto por canal dentro de cada categoría ---
+  {
+    SELECT ?channel ?category (MAX(?views) AS ?maxViewsChannel)
+    WHERE {
+      ?video a wd:Q63412991 ;
+             wdt:P123 ?channel ;    # canal al que pertenece
+             wdt:P910 ?category ;   # categoría del vídeo (ajusta si es otro predicado)
+             wdt:P5436 ?views .     # número de visualizaciones
+    }
+    GROUP BY ?channel ?category
+  }
+
+  # --- 2️⃣ Recuperar los vídeos que cumplen esas condiciones ---
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel ;
+         wdt:P910 ?category ;
+         wdt:P5436 ?views ;
+         wdt:P1476 ?title .
+  FILTER(?views = ?maxViewsChannel)
+
+  # 🔥 Aquí eliminamos el OPTIONAL — solo categorías con nombre
+  ?category wdt:P1476 ?categoryName .
+
+  # --- 3️⃣ Canal enlazado con Wikidata ---
+  ?channel owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 4️⃣ Obtener nacionalidad/país/continente del canal ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- 5️⃣ Clasificación de continentes ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+
+# --- 6️⃣ Agrupación final: solo por continente y categoría ---
+GROUP BY ?continentGroup ?categoryName
+ORDER BY ?continentGroup ?categoryName
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 12:52:29,001 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 9742ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT ?continentGroup ?categoryName
+       (SAMPLE(?title) AS ?topVideoTitle)
+       (SAMPLE(?channel) AS ?topChannel)
+       (MAX(?views) AS ?maxViews)
+WHERE {
+  # --- 1️⃣ Video más visto por canal dentro de cada categoría ---
+  {
+    SELECT ?channel ?category (MAX(?views) AS ?maxViewsChannel)
+    WHERE {
+      ?video a wd:Q63412991 ;
+             wdt:P123 ?channel ;    # canal al que pertenece
+             wdt:P910 ?category ;   # categoría del vídeo (ajusta si es otro predicado)
+             wdt:P5436 ?views .     # número de visualizaciones
+    }
+    GROUP BY ?channel ?category
+  }
+
+  # --- 2️⃣ Recuperar los vídeos que cumplen esas condiciones ---
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel ;
+         wdt:P910 ?category ;
+         wdt:P5436 ?views ;
+         wdt:P1476 ?title .
+  FILTER(?views = ?maxViewsChannel)
+
+  { ?category wdt:P1476 ?categoryName }
+
+  # --- 3️⃣ Canal enlazado con Wikidata ---
+  ?channel owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 4️⃣ Obtener nacionalidad/país/continente del canal ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- 5️⃣ Clasificación de continentes ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+
+# --- 6️⃣ Agrupación final: solo por continente y categoría ---
+GROUP BY ?continentGroup ?categoryName
+ORDER BY ?continentGroup ?categoryName
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 12:56:59,099 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 241583ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT ?continentGroup ?categoryName
+       (SAMPLE(?title) AS ?topVideoTitle)
+       (SAMPLE(?channel) AS ?topChannel)
+       (MAX(?views) AS ?maxViews)
+WHERE {
+  # --- 1️⃣ Video más visto por canal dentro de cada categoría ---
+  {
+    SELECT ?channel ?category (MAX(?views) AS ?maxViewsChannel)
+    WHERE {
+      ?video a wd:Q63412991 ;
+             wdt:P123 ?channel ;    # canal al que pertenece
+             wdt:P910 ?category ;   # categoría del vídeo (ajusta si es otro predicado)
+             wdt:P5436 ?views .     # número de visualizaciones
+    }
+    GROUP BY ?channel ?category
+  }
+
+  # --- 2️⃣ Recuperar los vídeos que cumplen esas condiciones ---
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel ;
+         wdt:P910 ?category ;
+         wdt:P5436 ?views ;
+         wdt:P1476 ?title .
+  FILTER(?views = ?maxViewsChannel)
+
+  ?category wdt:P1476 ?categoryName .
+
+  # --- 3️⃣ Canal enlazado con Wikidata ---
+  ?channel owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 4️⃣ Obtener nacionalidad/país/continente del canal ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- 5️⃣ Clasificación de continentes ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+
+# --- 6️⃣ Agrupación final: solo por continente y categoría ---
+GROUP BY ?continentGroup ?categoryName
+ORDER BY ?continentGroup ?categoryName
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 12:59:55,169 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 35323ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT ?continentGroup ?categoryName
+       (SAMPLE(?title) AS ?topVideoTitle)
+       (SAMPLE(?channelName) AS ?topChannelName)
+       (MAX(?views) AS ?maxViews)
+WHERE {
+  # --- 1️⃣ Video más visto por canal dentro de cada categoría ---
+  {
+    SELECT ?channel ?category (MAX(?views) AS ?maxViewsChannel)
+    WHERE {
+      ?video a wd:Q63412991 ;
+             wdt:P123 ?channel ;    # canal al que pertenece
+             wdt:P910 ?category ;   # categoría del vídeo
+             wdt:P5436 ?views .     # número de visualizaciones
+    }
+    GROUP BY ?channel ?category
+  }
+
+  # --- 2️⃣ Recuperar los vídeos que cumplen esas condiciones ---
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel ;
+         wdt:P910 ?category ;
+         wdt:P5436 ?views ;
+         wdt:P1476 ?title .
+  FILTER(?views = ?maxViewsChannel)
+
+  # 🔥 Solo categorías con nombre definido
+  ?category wdt:P1476 ?categoryName .
+
+  # --- 3️⃣ Obtener el nombre local del canal ---
+  ?channel schema:name ?channelName .
+
+  # --- 4️⃣ Canal enlazado con Wikidata ---
+  ?channel owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 5️⃣ Obtener país/continente del canal ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- 6️⃣ Clasificación de continentes ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+
+# --- 7️⃣ Agrupación final: solo por continente y categoría ---
+GROUP BY ?continentGroup ?categoryName
+ORDER BY ?continentGroup ?categoryName
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 13:04:30,227 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 61418ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT DISTINCT ?channelName ?personName ?birthDate ?wikidataPerson
+WHERE {
+  # --- 1️⃣ Canal enlazado con Wikidata ---
+  ?channel a wd:Q17558136 ;                # Canal de YouTube
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Bloque federado a Wikidata ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    # Caso A: el canal es una persona (canal-persona)
+    OPTIONAL {
+      ?wikidataEntity wdt:P569 ?birthDate .
+      BIND(?wikidataEntity AS ?wikidataPerson)
+    }
+
+    # Caso B: el canal tiene un creador/presentador
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?person .
+      ?person wdt:P569 ?birthDate .
+      BIND(?person AS ?wikidataPerson)
+    }
+
+    # Obtener nombre de la persona
+    OPTIONAL { ?wikidataPerson rdfs:label ?personLabel . FILTER(LANG(?personLabel) = "en") }
+    BIND(COALESCE(?personLabel) AS ?personName)
+  }
+
+  FILTER(BOUND(?birthDate))
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+java.lang.RuntimeException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:178)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.next(ServiceTriplePattern.java:142)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1663)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1626)
+	at com.ontotext.trree.query.SubQuery$5.next(SubQuery.java:1543)
+	at com.ontotext.trree.query.MainQuery$1.next(MainQuery.java:314)
+	at com.ontotext.trree.query.QueryModelConverter$2.next(QueryModelConverter.java:462)
+	at com.ontotext.trree.query.QueryModelConverter$2.next(QueryModelConverter.java:445)
+	at com.ontotext.trree.sdk.impl.PluginManager$3.hasNext(PluginManager.java:711)
+	at com.ontotext.trree.query.OwlimOrderIterator.createIteration(OwlimOrderIterator.java:86)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:60)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:104)
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:26)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:226)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.getNextElement(QueueIteration.java:185)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.concurrent.locks.diagnostics.CleanerTupleQueryResult.hasNext(CleanerTupleQueryResult.java:47)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.repository.sparql.federation.RepositoryFederatedService$CloseConnectionIteration.hasNext(RepositoryFederatedService.java:145)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getCurrentIter(GdbBatchingServiceIteration.java:39)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:67)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:149)
+	... 76 common frames omitted
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:104)
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:26)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:226)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.handleClose(QueueIteration.java:213)
+	at org.eclipse.rdf4j.common.iteration.AbstractCloseableIteration.close(AbstractCloseableIteration.java:52)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:220)
+	... 93 common frames omitted
+Caused by: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.resultio.binary.BinaryQueryResultParser.parse(BinaryQueryResultParser.java:198)
+	at org.eclipse.rdf4j.query.resultio.AbstractTupleQueryResultParser.parseQueryResult(AbstractTupleQueryResultParser.java:51)
+	at org.eclipse.rdf4j.query.resultio.helpers.BackgroundTupleResult.run(BackgroundTupleResult.java:94)
+	at org.eclipse.rdf4j.http.client.BackgroundResultExecutor.lambda$autoCloseRunnable$0(BackgroundResultExecutor.java:85)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	... 1 common frames omitted
+[ERROR] 2025-11-12 13:23:29,156 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 62634ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT DISTINCT ?channelName ?personName ?birthDate ?wikidataPerson
+WHERE {
+  # --- 1️⃣ Canal enlazado con Wikidata ---
+  ?channel a wd:Q17558136 ;                # Canal de YouTube
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Bloque federado a Wikidata ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    # Caso A: el canal es una persona (canal-persona)
+    OPTIONAL {
+      ?wikidataEntity wdt:P569 ?birthDate .
+      BIND(?wikidataEntity AS ?wikidataPerson)
+    }
+
+    # Caso B: el canal tiene un creador/presentador
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?person .
+      ?person wdt:P569 ?birthDate .
+      BIND(?person AS ?wikidataPerson)
+    }
+
+    # Obtener nombre de la persona
+    OPTIONAL { ?wikidataPerson rdfs:label ?personLabel . FILTER(LANG(?personLabel) = "en") }
+    BIND(COALESCE(?personLabel) AS ?personName)
+  }
+
+  FILTER(BOUND(?birthDate))
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+java.lang.RuntimeException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:178)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.next(ServiceTriplePattern.java:142)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1663)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1626)
+	at com.ontotext.trree.query.SubQuery$5.next(SubQuery.java:1543)
+	at com.ontotext.trree.query.MainQuery$1.next(MainQuery.java:314)
+	at com.ontotext.trree.query.QueryModelConverter$2.next(QueryModelConverter.java:462)
+	at com.ontotext.trree.query.QueryModelConverter$2.next(QueryModelConverter.java:445)
+	at com.ontotext.trree.sdk.impl.PluginManager$3.hasNext(PluginManager.java:711)
+	at com.ontotext.trree.query.OwlimOrderIterator.createIteration(OwlimOrderIterator.java:86)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:60)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:104)
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:26)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:226)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.getNextElement(QueueIteration.java:185)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.concurrent.locks.diagnostics.CleanerTupleQueryResult.hasNext(CleanerTupleQueryResult.java:47)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.repository.sparql.federation.RepositoryFederatedService$CloseConnectionIteration.hasNext(RepositoryFederatedService.java:145)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getCurrentIter(GdbBatchingServiceIteration.java:39)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:67)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:149)
+	... 76 common frames omitted
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:104)
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:26)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:226)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.handleClose(QueueIteration.java:213)
+	at org.eclipse.rdf4j.common.iteration.AbstractCloseableIteration.close(AbstractCloseableIteration.java:52)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:220)
+	... 93 common frames omitted
+Caused by: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.resultio.binary.BinaryQueryResultParser.parse(BinaryQueryResultParser.java:198)
+	at org.eclipse.rdf4j.query.resultio.AbstractTupleQueryResultParser.parseQueryResult(AbstractTupleQueryResultParser.java:51)
+	at org.eclipse.rdf4j.query.resultio.helpers.BackgroundTupleResult.run(BackgroundTupleResult.java:94)
+	at org.eclipse.rdf4j.http.client.BackgroundResultExecutor.lambda$autoCloseRunnable$0(BackgroundResultExecutor.java:85)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	... 1 common frames omitted
+[ERROR] 2025-11-12 13:25:30,255 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 65671ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+
+SELECT DISTINCT ?channelName ?personName ?birthDate ?wikidataPerson
+WHERE {
+  # --- 1️⃣ Canal enlazado con Wikidata ---
+  ?channel a wd:Q17558136 ;
+           schema:name ?channelName ;
+           owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Bloque federado limpio a Wikidata ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    {
+      # Caso A: el canal es una persona
+      SELECT ?wikidataEntity ?wikidataPerson ?birthDate ?personName WHERE {
+        {
+          BIND(?wikidataEntity AS ?wikidataPerson)
+          ?wikidataPerson wdt:P569 ?birthDate .
+          OPTIONAL {
+            ?wikidataPerson rdfs:label ?personName .
+            FILTER(LANG(?personName) = "en")
+          }
+        }
+        UNION
+        {
+          # Caso B: el canal tiene creador/presentador
+          ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?wikidataPerson .
+          ?wikidataPerson wdt:P569 ?birthDate .
+          OPTIONAL {
+            ?wikidataPerson rdfs:label ?personName .
+            FILTER(LANG(?personName) = "en")
+          }
+        }
+      }
+    }
+  }
+
+  FILTER(BOUND(?birthDate))
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+java.lang.RuntimeException: org.eclipse.rdf4j.query.QueryEvaluationException: upstream request timeout
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:178)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.hasNext(ServiceTriplePattern.java:134)
+	at com.ontotext.trree.query.SubQuery.bindVars(SubQuery.java:1705)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1656)
+	at com.ontotext.trree.query.SubQuery$5.initializeAsNeeded(SubQuery.java:1490)
+	at com.ontotext.trree.query.SubQuery$5.hasNext(SubQuery.java:1481)
+	at com.ontotext.trree.query.MainQuery$1.hasNext(MainQuery.java:151)
+	at com.ontotext.trree.query.QueryModelConverter$2.hasNext(QueryModelConverter.java:449)
+	at com.ontotext.trree.sdk.impl.PluginManager$3.hasNext(PluginManager.java:709)
+	at com.ontotext.trree.query.OwlimOrderIterator.createIteration(OwlimOrderIterator.java:86)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:60)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: upstream request timeout
+	at org.eclipse.rdf4j.repository.sparql.query.SPARQLTupleQuery.evaluate(SPARQLTupleQuery.java:50)
+	at org.eclipse.rdf4j.repository.sparql.federation.RepositoryFederatedService.select(RepositoryFederatedService.java:228)
+	at com.ontotext.graphdb.GraphDBRepositoryFederatedService.lambda$select$1(GraphDBRepositoryFederatedService.java:45)
+	at com.ontotext.trree.query.DelayedServiceIteration.createIteration(DelayedServiceIteration.java:42)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getCurrentIter(GdbBatchingServiceIteration.java:55)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:67)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:149)
+	... 74 common frames omitted
+Caused by: org.eclipse.rdf4j.repository.RepositoryException: upstream request timeout
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.execute(SPARQLProtocolSession.java:1095)
+	at com.ontotext.graphdb.GraphDBSparqlSession.execute(GraphDBSparqlSession.java:82)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.executeOK(SPARQLProtocolSession.java:1029)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.sendTupleQueryViaHttp(SPARQLProtocolSession.java:782)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.getBackgroundTupleQueryResult(SPARQLProtocolSession.java:677)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.sendTupleQuery(SPARQLProtocolSession.java:377)
+	at org.eclipse.rdf4j.repository.sparql.query.SPARQLTupleQuery.evaluate(SPARQLTupleQuery.java:47)
+	... 86 common frames omitted
+[ERROR] 2025-11-12 13:29:02,451 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 55091ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?personName ?birthDate
+WHERE {
+  ?channel a wd:Q17558136 ;
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    {
+      # Caso 1️⃣: el canal en sí es una persona
+      SELECT ?wikidataEntity ?birthDate ?personName WHERE {
+        ?wikidataEntity wdt:P569 ?birthDate .
+        OPTIONAL { ?wikidataEntity rdfs:label ?personName . FILTER(LANG(?personName)="en") }
+      }
+    }
+    UNION
+    {
+      # Caso 2️⃣: el canal tiene presentador, creador o performer
+      SELECT ?wikidataEntity ?birthDate ?personName WHERE {
+        ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?person .
+        ?person wdt:P569 ?birthDate .
+        OPTIONAL { ?person rdfs:label ?personName . FILTER(LANG(?personName)="en") }
+      }
+    }
+  }
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 13:30:03,517 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 60507ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?personName ?birthDate
+WHERE {
+  ?channel a wd:Q17558136 ;
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+      # Caso 2️⃣: el canal tiene presentador, creador o performer
+      SELECT ?wikidataEntity ?birthDate ?personName WHERE {
+        ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?person .
+        ?person wdt:P569 ?birthDate .
+        OPTIONAL { ?person rdfs:label ?personName . FILTER(LANG(?personName)="en") }
+      }
+  }
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+java.lang.RuntimeException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:178)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.next(ServiceTriplePattern.java:142)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1663)
+	at com.ontotext.trree.query.SubQuery$5.initializeAsNeeded(SubQuery.java:1490)
+	at com.ontotext.trree.query.SubQuery$5.hasNext(SubQuery.java:1481)
+	at com.ontotext.trree.query.MainQuery$1.hasNext(MainQuery.java:151)
+	at com.ontotext.trree.query.QueryModelConverter$2.hasNext(QueryModelConverter.java:449)
+	at com.ontotext.trree.sdk.impl.PluginManager$3.hasNext(PluginManager.java:709)
+	at com.ontotext.trree.query.OwlimOrderIterator.createIteration(OwlimOrderIterator.java:86)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:60)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:104)
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:26)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:226)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.getNextElement(QueueIteration.java:185)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.concurrent.locks.diagnostics.CleanerTupleQueryResult.hasNext(CleanerTupleQueryResult.java:47)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.repository.sparql.federation.RepositoryFederatedService$CloseConnectionIteration.hasNext(RepositoryFederatedService.java:145)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getCurrentIter(GdbBatchingServiceIteration.java:39)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:67)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:149)
+	... 73 common frames omitted
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:104)
+	at org.eclipse.rdf4j.query.impl.QueueCursor.convert(QueueCursor.java:26)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:226)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.handleClose(QueueIteration.java:213)
+	at org.eclipse.rdf4j.common.iteration.AbstractCloseableIteration.close(AbstractCloseableIteration.java:52)
+	at org.eclipse.rdf4j.common.iteration.QueueIteration.checkException(QueueIteration.java:220)
+	... 90 common frames omitted
+Caused by: org.eclipse.rdf4j.query.resultio.QueryResultParseException: Could not parse the query result.
+	at org.eclipse.rdf4j.query.resultio.binary.BinaryQueryResultParser.parse(BinaryQueryResultParser.java:198)
+	at org.eclipse.rdf4j.query.resultio.AbstractTupleQueryResultParser.parseQueryResult(AbstractTupleQueryResultParser.java:51)
+	at org.eclipse.rdf4j.query.resultio.helpers.BackgroundTupleResult.run(BackgroundTupleResult.java:94)
+	at org.eclipse.rdf4j.http.client.BackgroundResultExecutor.lambda$autoCloseRunnable$0(BackgroundResultExecutor.java:85)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	... 1 common frames omitted
+[ERROR] 2025-11-12 13:34:16,179 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 91592ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?birthDate ?topVideo ?topVideoTitle ?maxViews
+WHERE {
+  # --- 1️⃣ Canal enlazado con Wikidata ---
+  ?channel a wd:Q17558136 ;
+           schema:name ?channelName ;
+           owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Subquery: obtener el vídeo más visto por canal ---
+  {
+    SELECT ?channel (MAX(?views) AS ?maxViews)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P5436 ?views .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+  }
+
+  # --- 3️⃣ Recuperar el vídeo concreto con ese número máximo de vistas ---
+  ?topVideo a wd:Q63412991 ;
+            wdt:P123 ?channel ;
+            wdt:P5436 ?views ;
+            wdt:P1476 ?topVideoTitle .
+  FILTER(?views = ?maxViews)
+
+  # --- 4️⃣ Fecha de nacimiento federada desde Wikidata ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+     OPTIONAL { ?wikidataEntity wdt:P569 ?birthDate . }
+  }
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 13:36:44,734 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 142917ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?birthDate ?topVideo ?topVideoTitle ?maxViews
+WHERE {
+  # --- 1️⃣ Canal enlazado con Wikidata ---
+  ?channel a wd:Q17558136 ;
+           schema:name ?channelName ;
+           owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Subquery: obtener el vídeo más visto por canal ---
+  {
+    SELECT ?channel (MAX(?views) AS ?maxViews)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P5436 ?views .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+  }
+
+  # --- 3️⃣ Recuperar el vídeo concreto con ese número máximo de vistas ---
+  ?topVideo a wd:Q63412991 ;
+            wdt:P123 ?channel ;
+            wdt:P5436 ?views ;
+            wdt:P1476 ?topVideoTitle .
+  FILTER(?views = ?maxViews)
+
+  # --- 4️⃣ Fecha de nacimiento federada desde Wikidata ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+     ?wikidataEntity wdt:P569 ?birthDate . 
+  }
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 13:44:05,627 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 397996ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?birthDate ?topVideo ?topVideoTitle ?maxViews
+WHERE {
+  # --- 1️⃣ Canal enlazado con Wikidata ---
+  ?channel a wd:Q17558136 ;
+           schema:name ?channelName ;
+           owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- 2️⃣ Subquery: obtener el vídeo más visto por canal ---
+  {
+    SELECT ?channel (MAX(?views) AS ?maxViews)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P5436 ?views .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+  }
+
+  # --- 3️⃣ Recuperar el vídeo concreto con ese número máximo de vistas ---
+  ?topVideo a wd:Q63412991 ;
+            wdt:P123 ?channel ;
+            wdt:P5436 ?views ;
+            wdt:P1476 ?topVideoTitle .
+  FILTER(?views = ?maxViews)
+
+  # --- 4️⃣ Fecha de nacimiento federada desde Wikidata ---
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+     ?wikidataEntity wdt:P569 ?birthDate . 
+  }
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 13:47:21,217 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 31315ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?birthDate ?maxViews
+WHERE {
+  ?channel a wd:Q17558136 ;        # Canal de YouTube
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P569 ?birthDate . }  # Fecha de nacimiento
+  }
+  {
+    SELECT ?channel (MAX(?views) AS ?maxViews)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P5436 ?views .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+  }
+  ?topVideo a wd:Q63412991 ;
+            wdt:P123 ?channel ;
+            wdt:P5436 ?views ;
+            wdt:P1476 ?topVideoTitle .
+  FILTER(?views = ?maxViews)
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+org.eclipse.rdf4j.query.QueryInterruptedException: Query was aborted by the user.
+	at com.ontotext.trree.SailIterationWrapper.checkAborted(SailIterationWrapper.java:105)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+[ERROR] 2025-11-12 14:34:03,622 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 7745ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>PREFIX wd:   &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt:  &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX owl:  &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?birthDate ?maxViews ?maxLikes (?maxLikes/?maxViews as ?ratio)
+WHERE {
+  ?channel a wd:Q17558136 ;        # Canal de YouTube
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    OPTIONAL { ?wikidataEntity wdt:P569 ?birthDate . }  # Fecha de nacimiento
+  }
+  {
+    SELECT ?channel (MAX(?views) AS ?maxViews)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P5436 ?views .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+    }
+      {
+    SELECT ?channel (MAX(?likes) AS ?maxLikes)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P10649 ?likes .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+    }
+}
+ORDER BY ?birthDate
+</body>
+</query>
+
+java.lang.RuntimeException: org.eclipse.rdf4j.query.QueryEvaluationException: query.wikidata.org: Try again
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:178)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.hasNext(ServiceTriplePattern.java:134)
+	at com.ontotext.trree.query.SubQuery.bindVars(SubQuery.java:1705)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1656)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.initializeAsNeeded(SubQuery.java:1490)
+	at com.ontotext.trree.query.SubQuery$5.hasNext(SubQuery.java:1481)
+	at com.ontotext.trree.query.MainQuery$1.hasNext(MainQuery.java:151)
+	at com.ontotext.trree.query.QueryModelConverter$2.hasNext(QueryModelConverter.java:449)
+	at com.ontotext.trree.sdk.impl.PluginManager$3.hasNext(PluginManager.java:709)
+	at com.ontotext.trree.query.OwlimJoinIterator.getNextElementMeasured(OwlimJoinIterator.java:58)
+	at com.ontotext.measurement.MeasuredLookAheadIteration.getNextElement(MeasuredLookAheadIteration.java:27)
+	at com.ontotext.measurement.MeasuredLookAheadIteration.getNextElement(MeasuredLookAheadIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at com.ontotext.trree.query.OwlimOrderIterator.createIteration(OwlimOrderIterator.java:86)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:60)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.LimitIteration.hasNext(LimitIteration.java:71)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:104)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:555)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: query.wikidata.org: Try again
+	at org.eclipse.rdf4j.repository.sparql.query.SPARQLTupleQuery.evaluate(SPARQLTupleQuery.java:50)
+	at org.eclipse.rdf4j.repository.sparql.federation.RepositoryFederatedService.select(RepositoryFederatedService.java:228)
+	at com.ontotext.graphdb.GraphDBRepositoryFederatedService.lambda$select$1(GraphDBRepositoryFederatedService.java:45)
+	at com.ontotext.trree.query.DelayedServiceIteration.createIteration(DelayedServiceIteration.java:42)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getCurrentIter(GdbBatchingServiceIteration.java:55)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:67)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:149)
+	... 86 common frames omitted
+Caused by: java.net.UnknownHostException: query.wikidata.org: Try again
+	at java.base/java.net.Inet6AddressImpl.lookupAllHostAddr(Native Method)
+	at java.base/java.net.InetAddress$PlatformNameService.lookupAllHostAddr(InetAddress.java:930)
+	at java.base/java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1543)
+	at java.base/java.net.InetAddress$NameServiceAddresses.get(InetAddress.java:848)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1533)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1386)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1307)
+	at org.apache.http.impl.conn.SystemDefaultDnsResolver.resolve(SystemDefaultDnsResolver.java:45)
+	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:112)
+	at org.apache.http.impl.conn.PoolingHttpClientConnectionManager.connect(PoolingHttpClientConnectionManager.java:376)
+	at org.apache.http.impl.execchain.MainClientExec.establishRoute(MainClientExec.java:393)
+	at org.apache.http.impl.execchain.MainClientExec.execute(MainClientExec.java:236)
+	at org.apache.http.impl.execchain.ProtocolExec.execute(ProtocolExec.java:186)
+	at org.apache.http.impl.execchain.RetryExec.execute(RetryExec.java:89)
+	at org.apache.http.impl.execchain.RedirectExec.execute(RedirectExec.java:110)
+	at org.apache.http.impl.client.InternalHttpClient.doExecute(InternalHttpClient.java:185)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:83)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:56)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.execute(SPARQLProtocolSession.java:1065)
+	at com.ontotext.graphdb.GraphDBSparqlSession.execute(GraphDBSparqlSession.java:82)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.executeOK(SPARQLProtocolSession.java:1029)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.sendTupleQueryViaHttp(SPARQLProtocolSession.java:782)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.getBackgroundTupleQueryResult(SPARQLProtocolSession.java:677)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.sendTupleQuery(SPARQLProtocolSession.java:377)
+	at org.eclipse.rdf4j.repository.sparql.query.SPARQLTupleQuery.evaluate(SPARQLTupleQuery.java:47)
+	... 98 common frames omitted
+[ERROR] 2025-11-12 14:40:35,870 [repositories/GESTDB | c.o.t.q.LoggingClosableIteration] Error while executing query: 5016ms
+<?xml version='1.0'?>
+<query includeInferred='true' maxExecutionTime='0'>
+	<body>
+PREFIX owl: &lt;http://www.w3.org/2002/07/owl#&gt;
+PREFIX dbp: &lt;http://dbpedia.org/property/&gt;
+PREFIX dbo: &lt;http://dbpedia.org/ontology/&gt;
+
+SELECT DISTINCT ?canal ?sameAs ?p
+WHERE {
+
+    ?canal owl:sameAs ?sameAs .
+
+ SERVICE &lt;https://dbpedia.org/sparql&gt;{
+        ?sameAs ?p ?o
+    }
+}
+</body>
+</query>
+
+java.lang.RuntimeException: org.eclipse.rdf4j.query.QueryEvaluationException: dbpedia.org: Try again
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:178)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.hasNext(ServiceTriplePattern.java:134)
+	at com.ontotext.trree.query.SubQuery.bindVars(SubQuery.java:1705)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1656)
+	at com.ontotext.trree.query.SubQuery$5.find(SubQuery.java:1657)
+	at com.ontotext.trree.query.SubQuery$5.initializeAsNeeded(SubQuery.java:1490)
+	at com.ontotext.trree.query.SubQuery$5.hasNext(SubQuery.java:1481)
+	at com.ontotext.trree.query.MainQuery$1.hasNext(MainQuery.java:151)
+	at com.ontotext.trree.query.QueryModelConverter$2.hasNext(QueryModelConverter.java:449)
+	at com.ontotext.trree.sdk.impl.PluginManager$3.hasNext(PluginManager.java:709)
+	at org.eclipse.rdf4j.common.iteration.ConvertingIteration.hasNext(ConvertingIteration.java:66)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.findNextElement(FilterIteration.java:78)
+	at org.eclipse.rdf4j.common.iteration.FilterIteration.hasNext(FilterIteration.java:49)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailIterationWrapper.hasNext(SailIterationWrapper.java:60)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.trree.SailConnectionImpl$ConnectionClosingIteration.hasNext(SailConnectionImpl.java:3262)
+	at com.ontotext.trree.query.LoggingClosableIteration.hasNext(LoggingClosableIteration.java:93)
+	at org.eclipse.rdf4j.common.iteration.IterationWrapper.hasNext(IterationWrapper.java:67)
+	at com.ontotext.graphdb.sesame.CatchHandler.processWithBuffer(CatchHandler.java:137)
+	at com.ontotext.graphdb.sesame.TupleQueryResultView.renderInternal(TupleQueryResultView.java:90)
+	at org.eclipse.rdf4j.http.server.repository.QueryResultView.render(QueryResultView.java:66)
+	at org.springframework.web.servlet.DispatcherServlet.render(DispatcherServlet.java:1406)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1150)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:529)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.security.AdminDelegatingFilterProxy.doFilter(AdminDelegatingFilterProxy.java:83)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.clusterproxy.ClusterFilterBean.doFilter(ClusterFilterBean.java:73)
+	at com.ontotext.forest.clusterproxy.ClusterLoadBalancerFilter.doFilterInternal(ClusterLoadBalancerFilter.java:25)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.ontotext.forest.core.request.RequestFilter.doFilterInternal(RequestFilter.java:47)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at com.github.ziplet.filter.compression.CompressingFilter.doFilter(CompressingFilter.java:263)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: org.eclipse.rdf4j.query.QueryEvaluationException: dbpedia.org: Try again
+	at org.eclipse.rdf4j.repository.sparql.query.SPARQLTupleQuery.evaluate(SPARQLTupleQuery.java:50)
+	at org.eclipse.rdf4j.repository.sparql.federation.RepositoryFederatedService.select(RepositoryFederatedService.java:228)
+	at com.ontotext.graphdb.GraphDBRepositoryFederatedService.lambda$select$1(GraphDBRepositoryFederatedService.java:45)
+	at com.ontotext.trree.query.DelayedServiceIteration.createIteration(DelayedServiceIteration.java:42)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:65)
+	at com.ontotext.graphdb.BNodeFixingIteration.hasNext(BNodeFixingIteration.java:32)
+	at org.eclipse.rdf4j.common.iteration.DelayedIteration.hasNext(DelayedIteration.java:69)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getCurrentIter(GdbBatchingServiceIteration.java:55)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:67)
+	at com.ontotext.graphdb.GdbBatchingServiceIteration.getNextElement(GdbBatchingServiceIteration.java:15)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.lookAhead(LookAheadIteration.java:80)
+	at org.eclipse.rdf4j.common.iteration.LookAheadIteration.hasNext(LookAheadIteration.java:54)
+	at com.ontotext.trree.query.ServiceTriplePattern$2.getNextElement(ServiceTriplePattern.java:149)
+	... 70 common frames omitted
+Caused by: java.net.UnknownHostException: dbpedia.org: Try again
+	at java.base/java.net.Inet6AddressImpl.lookupAllHostAddr(Native Method)
+	at java.base/java.net.InetAddress$PlatformNameService.lookupAllHostAddr(InetAddress.java:930)
+	at java.base/java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1543)
+	at java.base/java.net.InetAddress$NameServiceAddresses.get(InetAddress.java:848)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1533)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1386)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1307)
+	at org.apache.http.impl.conn.SystemDefaultDnsResolver.resolve(SystemDefaultDnsResolver.java:45)
+	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:112)
+	at org.apache.http.impl.conn.PoolingHttpClientConnectionManager.connect(PoolingHttpClientConnectionManager.java:376)
+	at org.apache.http.impl.execchain.MainClientExec.establishRoute(MainClientExec.java:393)
+	at org.apache.http.impl.execchain.MainClientExec.execute(MainClientExec.java:236)
+	at org.apache.http.impl.execchain.ProtocolExec.execute(ProtocolExec.java:186)
+	at org.apache.http.impl.execchain.RetryExec.execute(RetryExec.java:89)
+	at org.apache.http.impl.execchain.RedirectExec.execute(RedirectExec.java:110)
+	at org.apache.http.impl.client.InternalHttpClient.doExecute(InternalHttpClient.java:185)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:83)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:56)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.execute(SPARQLProtocolSession.java:1065)
+	at com.ontotext.graphdb.GraphDBSparqlSession.execute(GraphDBSparqlSession.java:82)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.executeOK(SPARQLProtocolSession.java:1029)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.sendTupleQueryViaHttp(SPARQLProtocolSession.java:782)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.getBackgroundTupleQueryResult(SPARQLProtocolSession.java:677)
+	at org.eclipse.rdf4j.http.client.SPARQLProtocolSession.sendTupleQuery(SPARQLProtocolSession.java:377)
+	at org.eclipse.rdf4j.repository.sparql.query.SPARQLTupleQuery.evaluate(SPARQLTupleQuery.java:47)
+	... 82 common frames omitted
+[INFO ] 2025-11-12 16:00:43,998 [import-task-GESTDB-1 | c.o.t.m.MonitorRepositoryConnection] Parallel mode requested but it is disabled globally. Using serial mode instead.
