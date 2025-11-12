@@ -43,9 +43,9 @@ gest:channel_UCJ0-OtVpF0wOKEqT2Z1HEtA schema:name "ElectroBOOM" ;
 	wdt:P3744 "8600000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
 	wdt:P910 "http://gestdb.org/category_@electroboom" ;
-	owl:sameAs wd:Q18643733 ;
+	owl:sameAs wd:Q47472219 ;
 	owl:sameAs dbp:ElectroBOOM ;
-    schema:sameAs <https://www.wikidata.org/wiki/Q18643733> .
+    schema:sameAs <https://www.wikidata.org/wiki/Q47472219> .
 
 gest:channel_UCPH3Oz99Y_jrVBCQMjQZNSg schema:name "Memorias de Pez" ;
 	rdf:type wd:Q17558136 ;

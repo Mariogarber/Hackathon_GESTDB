@@ -1,3 +1,5 @@
+EXPLORACIÓN CON ENDPOINT DE DBPEDIA
+
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX dbp: <http://dbpedia.org/property/>
 PREFIX dbo: <http://dbpedia.org/ontology/>
@@ -11,3 +13,258 @@ WHERE {
         ?sameAs ?p ?o
     }
 }
+
+EXPLORACIÓN CON ENDPOINT wikidata
+
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?channel ?channelName ?wikidataEntity ?wdLabel ?wdDesc
+WHERE {
+  ?channel a wd:Q17558136 ;
+           owl:sameAs ?wikidataEntity .
+  OPTIONAL { ?channel schema:name ?channelName }
+
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?wikidataEntity rdfs:label ?wdLabel .
+    OPTIONAL { ?wikidataEntity schema:description ?wdDesc }
+    FILTER(LANG(?wdLabel) = "en")
+    FILTER(LANG(?wdDesc) = "en")
+  }
+}
+LIMIT 50
+
+TOP 20 VÍDEOS POR NÚMERO DE COMENTARIOS
+
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?video ?title ?nComments ?channelName
+WHERE {
+  ?video a wd:Q63412991 ;          # vídeo
+         wdt:P1476 ?title ;        # título
+         wdt:P10651 ?nComments ;   # nº comentarios
+         wdt:P123 ?channel .       # canal
+  ?channel schema:name ?channelName .  # nombre del canal
+}
+ORDER BY DESC(?nComments)
+LIMIT 20
+
+CANALES CON MAYOR NÚMERO DE VÍDEOS
+
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+PREFIX schema: <http://schema.org/>
+SELECT ?channelName (COUNT(?video) AS ?numVideos)
+WHERE {
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel .
+  ?channel schema:name ?channelName .
+}
+GROUP BY ?channelName
+ORDER BY DESC(?numVideos)
+LIMIT 10
+
+NACIONALIDAD DE LA PERSONA QUE LLEVA CADA CANALES
+
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT DISTINCT ?channel
+				?channelName
+       (COALESCE(?presenterLabel, ?wdLabel, ?prefLabel, ?schemaLabel, ?foafLabel) AS ?personName)
+       (COALESCE(?presenterCountryLabel, ?citizenLabel) AS ?nationality)
+WHERE {
+  ?channel a wd:Q17558136 ;
+           schema:name ?channelName ;
+           owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  SERVICE <https://query.wikidata.org/sparql> {
+    # Nombre del canal si es persona
+    OPTIONAL { ?wikidataEntity rdfs:label ?wdLabel . FILTER(LANG(?wdLabel) IN ("en")) }
+
+    # Nacionalidad si el canal es persona
+    OPTIONAL {
+      ?wikidataEntity wdt:P27 ?citizen .
+      ?citizen rdfs:label ?citizenLabel .
+      FILTER(LANG(?citizenLabel) IN ("en"))
+    }
+
+    # Presentador o creador con su país
+    OPTIONAL {
+      ?wikidataEntity (wdt:P371|wdt:P175|wdt:P170) ?presenter .
+      ?presenter rdfs:label ?presenterLabel .
+      FILTER(LANG(?presenterLabel) IN ("en"))
+      OPTIONAL {
+        ?presenter wdt:P27 ?presenterCountry .
+        ?presenterCountry rdfs:label ?presenterCountryLabel .
+        FILTER(LANG(?presenterCountryLabel) IN ("en"))
+      }
+    }
+  }
+}
+ORDER BY ?personName
+
+COMPARACIÓN DEL NÚMERO DE SUSCRIPTORES POR EL CONTINENTE AL QUE PERTENECE EL CANALES
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?continentGroup 
+       (COUNT(DISTINCT ?channel) AS ?numChannels)
+       (SUM(?subs) AS ?totalSubscribers)
+WHERE {
+  # --- Datos locales (canales) ---
+  ?channel a wd:Q17558136 ;
+           owl:sameAs ?wikidataEntity ;
+           wdt:P3744 ?subs .          # Número de suscriptores (ajústalo si tu propiedad local es otra)
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- Enriquecimiento federado en Wikidata ---
+  SERVICE <https://query.wikidata.org/sparql> {
+    # País/nacionalidad del canal o de su presentador
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }      # Canal persona
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }  # Canal organización
+
+    # Presentador/creador
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }  # Nacionalidad del presentador
+    }
+
+    # Obtener un país final en orden de prioridad
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+
+    # Obtener el continente de ese país
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- Clasificación del continente ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+GROUP BY ?continentGroup
+ORDER BY ?continentGroup
+
+COMPARACIÓN DE VIDEO MÁS POPULAR EN CADA continente
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?continentGroup ?categoryName
+       (SAMPLE(?title) AS ?topVideoTitle)
+       (SAMPLE(?channelName) AS ?topChannelName)
+       (MAX(?views) AS ?maxViews)
+WHERE {
+  # --- Video más visto por canal dentro de cada categoría ---
+  {
+    SELECT ?channel ?category (MAX(?views) AS ?maxViewsChannel)
+    WHERE {
+      ?video a wd:Q63412991 ;
+             wdt:P123 ?channel ;    # canal al que pertenece
+             wdt:P910 ?category ;   # categoría del vídeo
+             wdt:P5436 ?views .     # número de visualizaciones
+    }
+    GROUP BY ?channel ?category
+  }
+
+  # --- Recuperar los vídeos que cumplen esas condiciones ---
+  ?video a wd:Q63412991 ;
+         wdt:P123 ?channel ;
+         wdt:P910 ?category ;
+         wdt:P5436 ?views ;
+         wdt:P1476 ?title .
+  FILTER(?views = ?maxViewsChannel)
+
+  # --- Obtener el nombre local del canal y categoría ---
+  OPTIONAL { ?category wdt:P1476 ?categoryName }
+  FILTER(BOUND(?categoryName))
+
+  ?channel schema:name ?channelName .
+
+  # --- Canal enlazado con Wikidata ---
+  ?channel owl:sameAs ?wikidataEntity .
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  # --- Obtener país/continente del canal ---
+  SERVICE <https://query.wikidata.org/sparql> {
+    OPTIONAL { ?wikidataEntity wdt:P27 ?citizen . }
+    OPTIONAL { ?wikidataEntity (wdt:P17|wdt:P495|wdt:P159) ?country . }
+    OPTIONAL {
+      ?wikidataEntity (wdt:P175|wdt:P371|wdt:P170) ?presenter .
+      OPTIONAL { ?presenter wdt:P27 ?presenterCountry . }
+    }
+    BIND(COALESCE(?presenterCountry, ?citizen, ?country) AS ?finalCountry)
+    OPTIONAL { ?finalCountry wdt:P30 ?continent . }
+  }
+
+  # --- Clasificación de continentes ---
+  BIND(
+    IF(?continent IN (wd:Q46, wd:Q458, wd:Q27468), "Europe",
+      IF(?continent IN (wd:Q18, wd:Q49, wd:Q15, wd:Q538), "America", "Other")
+    ) AS ?continentGroup
+  )
+  FILTER(?continentGroup IN ("Europe", "America"))
+}
+
+# --- Agrupación final: solo por continente y categoría ---
+GROUP BY ?continentGroup ?categoryName
+ORDER BY ?continentGroup ?categoryName
+
+ORDENAR CANALES SEGÚN LA FECHA DE NACIMIENTO DE LOS PROPIETARIOS
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?channel ?channelName ?wikidataEntity ?birthDate ?maxViews ?maxLikes (?maxLikes/?maxViews as ?ratio)
+WHERE {
+  ?channel a wd:Q17558136 ;        # Canal de YouTube
+           owl:sameAs ?wikidataEntity ;
+           schema:name ?channelName .
+
+  FILTER(STRSTARTS(STR(?wikidataEntity), "http://www.wikidata.org/entity/"))
+
+  SERVICE <https://query.wikidata.org/sparql> {
+    OPTIONAL { ?wikidataEntity wdt:P569 ?birthDate . }  # Fecha de nacimiento
+  }
+  {
+    SELECT ?channel (MAX(?views) AS ?maxViews)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P5436 ?views .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+    }
+      {
+    SELECT ?channel (MAX(?likes) AS ?maxLikes)
+    WHERE {
+      ?video a wd:Q63412991 ;        # Vídeo de YouTube
+             wdt:P123 ?channel ;     # Propiedad canal (ajústala si es distinta)
+             wdt:P10649 ?likes .      # Número de visualizaciones
+    }
+    GROUP BY ?channel
+    }
+}
+ORDER BY ?birthDate
