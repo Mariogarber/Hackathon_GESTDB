@@ -101,7 +101,7 @@ gest:channel_UCbdSYaPD-lr1kW27UJuk8Pw schema:name "QuantumFracture" ;
 	wdt:P407 "Español" ;
 	wdt:P910 "http://gestdb.org/category_@quantumfracture" ;
 	owl:sameAs wd:Q117187889 ;
-    schema:sameAs <https://www.wikidata.org/wiki/Q117187889> .
+    schema:sameAs <http://www.wikidata.org/wiki/Q117187889> .
 
 gest:channel_UChtpOdya2W7F0V9FrVVzQCg schema:name "A toda leche" ;
 	rdf:type wd:Q17558136 ;
