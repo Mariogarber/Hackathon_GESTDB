@@ -163,6 +163,53 @@ def create_indices(es_client):
     create_index_if_not_exists(es_client, ES_INDEX_COMMENTS, MAPPING_COMMENTS)
     create_index_if_not_exists(es_client, ES_INDEX_CHANNELS, MAPPING_CHANNELS)
 
+def fetch_videos_from_postgres():
+    """Fetch videos data from PostgreSQL"""
+    try:
+        connection = psycopg2.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        query = """
+        SELECT 
+            id,
+            title_raw,
+            duration,
+            topic,
+            published_at,
+            view_count,
+            like_count,
+            language,
+            description,
+            id_channel
+        FROM public.video
+        """
+        
+        cursor.execute(query)
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        embeddings1 = pd.read_csv('/app/data/embeddings_data/videos_embeddings.csv')
+        embeddings1 = embeddings1[["id", "title_embedding", "description_embedding", "topic_embedding"]]
+
+        df_sql["id"] = df_sql["id"].astype(str)
+        emb_df["id"] = emb_df["id"].astype(str)
+        merged = df_sql.merge(
+            emb_df[["id"] + expected_emb_cols].drop_duplicates(subset=["id"]),
+            on="id",
+            how="left"
+        )
+
+
+        columns.extend(["title_embedding", "description_embedding", "topic_embedding"])
+        rows = [row + tuple(embeddings1.iloc[i]) for i, row in enumerate(rows)]
+        videos = [dict(zip(columns, row)) for row in rows]
+        logger.info("Retrieved %d videos from PostgreSQL", len(videos))
+        return videos
+    except Exception as error:
+        logger.error("Error fetching videos from PostgreSQL: %r", error)
+        raise
 def fetch_videos_from_postgres2():
     """Fetch videos data from PostgreSQL"""
     try:
@@ -228,16 +275,16 @@ def fetch_comments_from_postgres():
         connection.close()
 
         embeddings1 = pd.read_csv('/app/data/embeddings_data/comments_embeddings_part1.csv')
-        embeddings1 = embeddings1[["comment_embedding"]]
+        embeddings1 = embeddings1[["id","comment_embedding"]]
         embeddings2 =pd.read_csv('/app/data/embeddings_data/comments_embeddings_part2.csv')
-        embeddings2 = embeddings2[["comment_embedding"]]
+        embeddings2 = embeddings2[["id","comment_embedding"]]
         embeddings3 = pd.read_csv('/app/data/embeddings_data/comments_embeddings_part3.csv')
-        embeddings3 = embeddings3[["comment_embedding"]]
+        embeddings3 = embeddings3[["id","comment_embedding"]]
         embeddings = pd.concat([embeddings1, embeddings2, embeddings3], ignore_index=True)
 
         expected_emb_cols = ["comment_embedding"]
         df_sql["id"] = df_sql["id"].astype(str)
-        embeddings["id"] = embeddings.index.astype(str)
+        embeddings["id"] = embeddings["id"].astype(str)
         merged = df_sql.merge(
             embeddings[["id"] + expected_emb_cols].drop_duplicates(subset=["id"]),
             on="id",
