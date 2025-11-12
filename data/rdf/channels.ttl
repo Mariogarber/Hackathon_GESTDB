@@ -15,8 +15,8 @@ gest:channel_UC1_uAIS3r8Vu6JjXWvastJg schema:name "Mathologer" ;
 	wdt:P3744 "960000"^^xsd:integer ;
 	wdt:P407 "Inglés" ;
 	wdt:P910 "http://gestdb.org/category_@mathologer";
-	owl:sameAs wd:Q47493094 ;
-    schema:sameAs <https://www.wikidata.org/wiki/Q47493094> .
+	owl:sameAs wd:Q66565938 ;
+    schema:sameAs <https://www.wikidata.org/wiki/Q66565938> .
 
 gest:channel_UC36xmz34q02JYaZYKrMwXng schema:name "Nate Gentile" ;
 	rdf:type wd:Q17558136 ;
