@@ -34,16 +34,17 @@ El objetivo final es disponer de una base de datos enriquecida con vídeos, cana
 | `request.ipynb` | Notebook de ejemplo (probablemente muestra consultas o peticiones sobre los índices). |
 | `README.md` | Documento explicativo del proyecto (este archivo). |
 
+
 ## Esquema de la base de datos
 
 La base de datos relacional se define en `database/database_youtube.sql`.  Las tablas principales son:
 
-- **channel**: almacena los canales (`id`, `name`, `language`, `description`, `suscriber_count`, `banner`, `category_link`)【643779282038525†L66-L76】.
-- **category**: lista de categorías de YouTube (`id`, `name`)【643779282038525†L38-L45】.
-- **video**: guarda los vídeos publicados por los canales (`id`, `title_raw`, `title_processed`, `description`, `published_at`, `language`, `duration`, `view_count`, `like_count`, `thumbnails`, `comment_count`, `topic`, `id_channel`, `id_category`)【643779282038525†L14-L31】.  Las claves foráneas enlazan con `channel` y `category`【643779282038525†L83-L138】.
-- **comment**: contiene los comentarios de los vídeos (`id`, `text`, `published_at`, `like_count`, `sentiment_score`, `id_video`)【643779282038525†L50-L59】.  Referencia a `video` mediante `id_video`【643779282038525†L126-L131】.
+- **channel**: almacena los canales (`id`, `name`, `language`, `description`, `suscriber_count`, `banner`, `category_link`).
+- **category**: lista de categorías de YouTube (`id`, `name`).
+- **video**: guarda los vídeos publicados por los canales (`id`, `title_raw`, `title_processed`, `description`, `published_at`, `language`, `duration`, `view_count`, `like_count`, `thumbnails`, `comment_count`, `topic`, `id_channel`, `id_category`).  Las claves foráneas enlazan con `channel` y `category`.
+- **comment**: contiene los comentarios de los vídeos (`id`, `text`, `published_at`, `like_count`, `sentiment_score`, `id_video`).  Referencia a `video` mediante `id_video`.
 
-Se crean índices para acelerar consultas por `published_at` y `language` en las tablas `video`, `channel` y `comment`【643779282038525†L90-L123】.
+Se crean índices para acelerar consultas por `published_at` y `language` en las tablas `video`, `channel` y `comment`.
 
 ## Flujo de procesamiento
 
@@ -53,11 +54,11 @@ Se crean índices para acelerar consultas por `published_at` y `language` en las
 
 3. **Preprocesamiento y enriquecimiento**:  usando los notebooks y scripts de `preprocess`, se limpian los textos (títulos y resúmenes), se calcula el sentimiento de los comentarios y se generan embeddings de frases mediante modelos `sentence-transformers`.  Los embeddings se almacenan en `data/embeddings_data` y se usará también `sentiment_score` como campo adicional de la tabla `comment`.
 
-4. **Indexación en Elasticsearch**:  el script `insert_into_elasticsearch.py` lee los datos de PostgreSQL, combina la información con los embeddings y crea índices en Elasticsearch con mapeos específicos para vídeos, comentarios y canales.  Los campos `dense_vector` permiten búsquedas semánticas mediante similitud coseno【134808238995968†L83-L104】【134808238995968†L109-L139】.
+4. **Indexación en Elasticsearch**:  el script `insert_into_elasticsearch.py` lee los datos de PostgreSQL, combina la información con los embeddings y crea índices en Elasticsearch con mapeos específicos para vídeos, comentarios y canales.  Los campos `dense_vector` permiten búsquedas semánticas mediante similitud coseno.
 
-5. **RDF y GraphDB**:  la carpeta `rdf` contiene ficheros `.ttl` que representan la misma información en formato de grafos de conocimiento.  El script `generate_comments.py` convierte el CSV de comentarios en triples RDF usando `rdflib`, añadiendo propiedades como fecha de creación, número de likes y texto del comentario【397339552200192†screenshot】.  El contenedor `graphdb` sirve para cargar estos ficheros y realizar consultas SPARQL.  El archivo `consultas.txt` ofrece ejemplos de consultas para explorar las propiedades de los canales o analizar top vídeos【446720107742744†screenshot】.
+5. **RDF y GraphDB**:  la carpeta `rdf` contiene ficheros `.ttl` que representan la misma información en formato de grafos de conocimiento.  El script `generate_comments.py` convierte el CSV de comentarios en triples RDF usando `rdflib`, añadiendo propiedades como fecha de creación, número de likes y texto del comentario.  El contenedor `graphdb` sirve para cargar estos ficheros y realizar consultas SPARQL.  El archivo `consultas.txt` ofrece ejemplos de consultas para explorar las propiedades de los canales o analizar top vídeos.
 
-6. **Análisis y visualizaciones**:  en la carpeta `results` se incluyen notebooks con consultas SQL sobre PostgreSQL.  Por ejemplo, uno de ellos calcula el promedio de duración, likes y comentarios por canal, y genera gráficos de barras; otro analiza la correlación entre likes y comentarios en periodos vacacionales frente a periodos lectivos; otro agrupa vídeos por franja horaria para estudiar la interacción a lo largo del día【839885288441041†L1318-L1373】【839885288441041†L2075-L2145】【839885288441041†L2278-L2319】.  Los notebooks de `sparql_queries.ipynb` contienen ejemplos de consultas a DBpedia/Wikidata para enriquecer la base de datos con metadatos externos.
+6. **Análisis y visualizaciones**:  en la carpeta `results` se incluyen notebooks con consultas SQL sobre PostgreSQL.  Por ejemplo, uno de ellos calcula el promedio de duración, likes y comentarios por canal, y genera gráficos de barras; otro analiza la correlación entre likes y comentarios en periodos vacacionales frente a periodos lectivos; otro agrupa vídeos por franja horaria para estudiar la interacción a lo largo del día.  Los notebooks de `sparql_queries.ipynb` contienen ejemplos de consultas a DBpedia/Wikidata para enriquecer la base de datos con metadatos externos.
 
 ## Despliegue y ejecución
 
@@ -71,15 +72,10 @@ Se crean índices para acelerar consultas por `published_at` y `language` en las
    docker-compose up -d
    ```
 
-   Esto iniciará los servicios de PostgreSQL, pgAdmin (en `http://localhost:8080`), Elasticsearch (en `http://localhost:9200`), GraphDB (en `http://localhost:7200`), JupyterLab (en `http://localhost:8888`) y un contenedor `data-importer` que realizará automáticamente la carga de datos e indexación【364216263720675†L60-L77】.
+   Esto iniciará los servicios de PostgreSQL, pgAdmin (en `http://localhost:8080`), Elasticsearch (en `http://localhost:9200`), GraphDB (en `http://localhost:7200`), JupyterLab (en `http://localhost:8888`) y un contenedor `data-importer` que realizará automáticamente la carga de datos e indexación.
 
-4. Verifica que las tablas se han creado correctamente ejecutando:
-
-   ```bash
-   docker exec -it postgresql psql -U postgres -d bbdd_api_youtube -c "\dt"
-   ```【147104557622046†L0-L7】
-
-5. Una vez terminado, puedes acceder a pgAdmin para explorar la base de datos, a Elasticsearch para comprobar que existen los índices `videos`, `comments` y `channels`, y a GraphDB para cargar los ficheros `.ttl` y realizar consultas SPARQL.  Los notebooks de `results` y `preprocess` pueden abrirse con JupyterLab para reproducir los análisis.
+4. Una vez terminado, puedes acceder a pgAdmin para explorar la base de datos, a Elasticsearch para comprobar que existen los índices `videos`, `comments` y `channels`, y a GraphDB para cargar los ficheros `.ttl` y realizar consultas SPARQL.  Los notebooks de `results` y `preprocess` pueden abrirse con JupyterLab para reproducir los análisis.
+   
 
 ## Licencia y uso de datos
 El código de este repositorio se publica bajo la licencia MIT.
